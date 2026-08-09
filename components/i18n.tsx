@@ -546,7 +546,11 @@ function tx(value: string, language: Language) {
     r = value.match(/\s*$/)?.[0] ?? "",
     raw = value.trim();
   if (!raw) return value;
-  const en = reverse.get(raw) ?? raw;
+  const normalized = raw.replaceAll("'", "’");
+  const en =
+    reverse.get(raw) ??
+    reverse.get(normalized) ??
+    (copy[raw] ? raw : copy[normalized] ? normalized : raw);
   return (
     l +
     (language === "en" ? en : (copy[en]?.[language === "az" ? 0 : 1] ?? en)) +
