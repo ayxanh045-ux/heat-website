@@ -855,24 +855,16 @@ export function ContactSection() {
     setError("");
     try {
       const values = Object.fromEntries(new FormData(form).entries());
-      const response = await fetch(
-        "https://formsubmit.co/ajax/heat.co2026@gmail.com",
-        {
+      const response = await fetch("/api/contact", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({
-            ...values,
-            _subject: "New HEAT Energy Assessment Request",
-            _template: "table",
-            source: "HEAT Website",
-          }),
-        },
-      );
+          body: JSON.stringify(values),
+        });
       const result = await response.json();
-      if (!response.ok || result.success === false || result.success === "false") {
+      if (!response.ok || result.success !== true) {
         throw new Error("Submission failed");
       }
       form.reset();
