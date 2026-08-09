@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -845,38 +845,13 @@ export function ComparisonAbout() {
 
 export function ContactSection() {
   const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    if (!form.checkValidity()) return;
-    setSending(true);
-    setError("");
-    try {
-      const values = Object.fromEntries(new FormData(form).entries());
-      const response = await fetch("/api/contact", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify(values),
-        });
-      const result = await response.json();
-      if (!response.ok || result.success !== true) {
-        throw new Error("Submission failed");
-      }
-      form.reset();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("submitted") === "1") {
       setSent(true);
-    } catch {
-      setError(
-        "Your request could not be sent. Please try again or email us directly.",
-      );
-    } finally {
-      setSending(false);
+      window.history.replaceState({}, "", `${window.location.pathname}#contact`);
     }
-  };
+  }, []);
   return (
     <>
       <section className="final-cta section">
@@ -948,7 +923,27 @@ export function ContactSection() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={submit}>
+              <form
+                action="https://formsubmit.co/heat.co2026@gmail.com"
+                method="POST"
+              >
+                <input
+                  type="hidden"
+                  name="_next"
+                  value="https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/?submitted=1#contact"
+                />
+                <input
+                  type="hidden"
+                  name="_subject"
+                  value="New HEAT Energy Assessment Request"
+                />
+                <input type="hidden" name="_template" value="table" />
+                <input
+                  type="hidden"
+                  name="_url"
+                  value="https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/"
+                />
+                <input type="text" name="_honey" className="honey-field" />
                 <div className="form-grid">
                   <label>
                     Full Name
@@ -1012,11 +1007,9 @@ export function ContactSection() {
                     />
                   </label>
                 </div>
-                <button className="submit" type="submit" disabled={sending}>
-                  {sending ? "Sending…" : "Request Energy Assessment"}{" "}
-                  <Send size={16} />
+                <button className="submit" type="submit">
+                  Request Energy Assessment <Send size={16} />
                 </button>
-                {error && <p className="form-error">{error}</p>}
                 <small>
                   By submitting, you agree to be contacted by the HEAT team.
                 </small>

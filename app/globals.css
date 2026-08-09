@@ -33,4 +33,4 @@
 @media(max-width:1050px){.mobile-nav-tools{display:flex}.mobile-nav-tools .language-select{display:none}}
 @media(max-width:720px){.mobile-nav-tools{display:flex;margin-left:auto}.mobile-nav-tools .language-select{display:flex;height:34px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-.submit:disabled{opacity:.6;cursor:wait}.form-error{color:#f87171!important;font-size:9px!important;text-align:center;margin:10px 0 0!important}
+.honey-field{display:none!important}
