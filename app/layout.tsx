@@ -13,21 +13,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HEAT | Intelligent Energy Monitoring & Analytics",
+  title: "HEAT | Ağıllı enerji monitorinqi və analitikası",
   description:
     "HEAT bizneslərə elektrik istehlakını real vaxtda izləməyə, enerji israfını aşkarlamağa və enerji xərclərini anlamağa kömək edir.",
   keywords: [
+    "enerji monitorinqi",
+    "enerji analitikası",
+    "elektrik istehlakının izlənməsi",
+    "biznes üçün enerji idarəetməsi",
+    "enerji xərclərinin azaldılması",
+    "enerji israfının aşkarlanması",
+    "Azərbaycan",
+    "Bakı",
     "energy monitoring",
     "energy analytics",
     "electricity monitoring",
     "business energy management",
     "energy optimization",
-    "Baku",
-    "Azerbaijan",
     "HEAT Energy Analytics",
   ],
   openGraph: {
-    title: "HEAT | Intelligent Energy Monitoring & Analytics",
+    title: "HEAT | Ağıllı enerji monitorinqi və analitikası",
     description:
       "Enerjini görün. İsrafı dayandırın. Bizneslər üçün real vaxt enerji analitikası.",
     type: "website",
@@ -36,15 +42,15 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "HEAT intelligent energy analytics dashboard",
+        alt: "HEAT ağıllı enerji analitikası idarəetmə paneli",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HEAT | Intelligent Energy Monitoring & Analytics",
+    title: "HEAT | Ağıllı enerji monitorinqi və analitikası",
     description:
-      "See Energy. Stop Waste. Real-time electricity visibility for businesses.",
+      "Enerjini görün. İsrafı dayandırın. Bizneslər üçün real vaxt enerji analitikası.",
     images: ["/og.png"],
   },
   icons: {

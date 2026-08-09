@@ -68,7 +68,7 @@ export function MainDashboard() {
     <div className="main-dashboard">
       <aside><div className="side-logo"><span>H</span><b>HEAT</b></div><nav>{nav.map((Icon, i) => <button key={navNames[i]} className={i === 0 ? "active" : ""}><Icon size={15}/><span>{navNames[i]}</span>{navNames[i] === "Alerts" && <em>2</em>}</button>)}</nav><div className="side-bottom"><span>DR</span><div><b>Demo Restaurant</b><small>Baku, AZ</small></div></div></aside>
       <div className="dash-main">
-        <div className="overview-head"><div><small>MONDAY, AUGUST 9</small><h3>Energy Overview</h3></div><button><MapPin size={14}/> Demo Restaurant — Baku <ChevronDown size={14}/></button></div>
+        <div className="overview-head"><div><small>SUNDAY, AUGUST 9</small><h3>Energy Overview</h3></div><button><MapPin size={14}/> Demo Restaurant — Baku <ChevronDown size={14}/></button></div>
         <div className="online-row"><span><i /> System Online</span><span>Last updated: Live</span><DemoBadge /></div>
         <div className="stats-grid">
           <div className="stat-card featured"><div><span>Real-Time Power</span><b className="normal">NORMAL</b></div><Gauge value={power} large /><small>Range 0 — 50 kW</small></div>
