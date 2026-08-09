@@ -26,13 +26,18 @@ function randomSecret(length = 32): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function Field({ label, name, value, onChange, type = "text", placeholder, required = true }: {
+function RequiredMark({ sourceHelp }: { sourceHelp?: string }) {
+  if (!sourceHelp) return <b className="field-required custom" aria-label="Məcburi sahə">*</b>;
+  return <b className="field-required sourced" aria-label={`Məcburi xarici məlumat. ${sourceHelp}`}>*<em role="tooltip">{sourceHelp}</em></b>;
+}
+
+function Field({ label, name, value, onChange, type = "text", placeholder, required = true, sourceHelp }: {
   label: string; name: keyof Fields; value: string; onChange: (name: keyof Fields, value: string) => void;
-  type?: string; placeholder?: string; required?: boolean;
+  type?: string; placeholder?: string; required?: boolean; sourceHelp?: string;
 }) {
   const [visible, setVisible] = useState(false);
   const secret = type === "password";
-  return <label className="admin-field"><span>{label}{required && <b>*</b>}</span><div className="admin-input-wrap">
+  return <label className="admin-field"><span>{label}{required && <RequiredMark sourceHelp={sourceHelp} />}</span><div className="admin-input-wrap">
     <input name={name} value={value} required={required} type={secret && visible ? "text" : type} placeholder={placeholder} onChange={(event) => onChange(name, event.target.value)} autoComplete="off" />
     {secret && <button type="button" onClick={() => setVisible(!visible)} aria-label={visible ? "Dəyəri gizlət" : "Dəyəri göstər"}>{visible ? <EyeOff size={16} /> : <Eye size={16} />}</button>}
   </div></label>;
@@ -62,19 +67,20 @@ export function ProvisioningForm() {
   if (created) return <div className="admin-success"><CheckCircle2 size={42} /><h2>Müştəri növbəyə əlavə edildi</h2><p>Lokal provisioner agent sistemi quracaq. Status siyahıda avtomatik yenilənəcək.</p><code>{created.jobId}</code><button onClick={() => setCreated(null)}><Plus size={16} /> Yeni müştəri</button></div>;
   return <form className="provision-form" onSubmit={submit}>
     <div className="form-progress"><span>Hazırlıq</span><strong>{progress}%</strong><i><b style={{ width: `${progress}%` }} /></i></div>
+    <div className="field-legend"><span><b className="custom">*</b> Özün təyin edirsən</span><span><b className="sourced">*</b> Başqa sistemdən götürülür — ulduzun üzərinə gəl</span></div>
     <section><div className="admin-section-title"><span>01</span><div><h2>Müştəri və obyekt</h2><p>Sistemdə görünəcək identifikasiya məlumatları.</p></div></div><div className="admin-form-grid">
       <Field label="Müştəri adı" name="customerName" value={fields.customerName} onChange={set} placeholder="Məsələn: Caspian Coffee" />
       <Field label="Müştəri slug" name="customerSlug" value={fields.customerSlug} onChange={set} placeholder="caspian-coffee" />
       <Field label="Obyekt adı" name="siteName" value={fields.siteName} onChange={set} placeholder="Nizami filialı" />
       <Field label="Cihaz adı" name="deviceName" value={fields.deviceName} onChange={set} />
-      <Field label="Shelly Device ID" name="deviceId" value={fields.deviceId} onChange={set} placeholder="a1b2c3d4e5f6" />
+      <Field label="Shelly Device ID" name="deviceId" value={fields.deviceId} onChange={set} placeholder="a1b2c3d4e5f6" sourceHelp="Shelly Smart Control: Device → Settings → Device Information → Device ID." />
       <Field label="Cihaz modeli" name="deviceModel" value={fields.deviceModel} onChange={set} />
     </div></section>
     <section><div className="admin-section-title"><span>02</span><div><h2>Shelly Cloud</h2><p>Cloud Key yalnız şifrələnmiş halda müştəri seyfində saxlanır.</p></div></div><div className="admin-form-grid">
-      <label className="admin-field"><span>Collector rejimi<b>*</b></span><select value={fields.collectorMode} onChange={(e) => set("collectorMode", e.target.value)}><option value="polling">Polling — ilk quraşdırma</option><option value="hybrid">Hybrid — real-time + fallback</option></select></label>
-      <Field label="Server URI" name="shellyServerUri" value={fields.shellyServerUri} onChange={set} placeholder="https://shelly-xx-eu.shelly.cloud" />
-      <Field label="Authorization Cloud Key" name="shellyCloudAuthKey" value={fields.shellyCloudAuthKey} onChange={set} type="password" />
-      {fields.collectorMode === "hybrid" && <><Field label="OAuth access token" name="shellyOAuthAccessToken" value={fields.shellyOAuthAccessToken} onChange={set} type="password" /><Field label="User API URL" name="shellyUserApiUrl" value={fields.shellyUserApiUrl} onChange={set} placeholder="https://shelly-xx-eu.shelly.cloud" /></>}
+      <label className="admin-field"><span>Collector rejimi<RequiredMark /></span><select value={fields.collectorMode} onChange={(e) => set("collectorMode", e.target.value)}><option value="polling">Polling — ilk quraşdırma</option><option value="hybrid">Hybrid — real-time + fallback</option></select></label>
+      <Field label="Server URI" name="shellyServerUri" value={fields.shellyServerUri} onChange={set} placeholder="https://shelly-xx-eu.shelly.cloud" sourceHelp="Shelly Smart Control: User Settings → Authorization cloud key. Server URI həmin səhifədə göstərilir." />
+      <Field label="Authorization Cloud Key" name="shellyCloudAuthKey" value={fields.shellyCloudAuthKey} onChange={set} type="password" sourceHelp="Shelly Smart Control: User Settings → Authorization cloud key bölməsindən yaradın və kopyalayın." />
+      {fields.collectorMode === "hybrid" && <><Field label="OAuth access token" name="shellyOAuthAccessToken" value={fields.shellyOAuthAccessToken} onChange={set} type="password" sourceHelp="Shelly OAuth inteqrasiya prosesinin verdiyi access tokeni daxil edin." /><Field label="User API URL" name="shellyUserApiUrl" value={fields.shellyUserApiUrl} onChange={set} placeholder="https://shelly-xx-eu.shelly.cloud" sourceHelp="Shelly OAuth inteqrasiya məlumatlarında göstərilən HTTPS User API ünvanını daxil edin." /></>}
     </div></section>
     <section><div className="admin-section-title"><span>03</span><div><h2>InfluxDB və Grafana</h2><p>İstəsəniz təhlükəsiz dəyərləri platforma yaratsın.</p></div><button className="generate-secrets" type="button" onClick={generate}><Sparkles size={15} /> Təhlükəsiz dəyərlər yarat</button></div><div className="admin-form-grid">
       <Field label="Influx organization" name="influxOrg" value={fields.influxOrg} onChange={set} />
@@ -86,8 +92,8 @@ export function ProvisioningForm() {
       <Field label="Grafana admin password" name="grafanaAdminPassword" value={fields.grafanaAdminPassword} onChange={set} type="password" />
     </div><div className="auto-token-note"><ShieldCheck size={16} /><span>Write, analytics-read və Grafana-read tokenləri quraşdırma zamanı avtomatik yaradılır.</span></div></section>
     <section><div className="admin-section-title"><span>04</span><div><h2>Telegram</h2><p>İstəyə bağlı bildiriş və hesabat kanalı.</p></div><label className="admin-switch"><input type="checkbox" checked={fields.telegramEnabled} onChange={(e) => set("telegramEnabled", e.target.checked)} /><i /><span>Aktiv et</span></label></div>{fields.telegramEnabled && <div className="admin-form-grid">
-      <Field label="Bot token" name="telegramBotToken" value={fields.telegramBotToken} onChange={set} type="password" />
-      <Field label="Allowed chat ID-lər" name="telegramAllowedChatIds" value={fields.telegramAllowedChatIds} onChange={set} placeholder="123456789,-100123456789" />
+      <Field label="Bot token" name="telegramBotToken" value={fields.telegramBotToken} onChange={set} type="password" sourceHelp="Telegram-da @BotFather açın, /newbot əmri ilə bot yaradın və verilən tokeni kopyalayın." />
+      <Field label="Allowed chat ID-lər" name="telegramAllowedChatIds" value={fields.telegramAllowedChatIds} onChange={set} placeholder="123456789,-100123456789" sourceHelp="Bota mesaj göndərin, sonra Bot API getUpdates cavabındakı message.chat.id dəyərini götürün." />
       <Field label="Default chat ID" name="telegramDefaultChatId" value={fields.telegramDefaultChatId} onChange={set} placeholder="123456789" required={false} />
     </div>}</section>
     {error && <div className="admin-error" role="alert">{error}</div>}
