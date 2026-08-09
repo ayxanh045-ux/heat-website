@@ -26,6 +26,12 @@ function randomSecret(length = 32): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function customerPrefix(slug: string): string {
+  const words = slug.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 2);
+  return words.map((word) => word[0]).join("");
+}
+
 function RequiredMark({ sourceHelp }: { sourceHelp?: string }) {
   if (!sourceHelp) return <b className="field-required custom" aria-label="Məcburi sahə">*</b>;
   return <b className="field-required sourced" aria-label={`Məcburi xarici məlumat. ${sourceHelp}`}>*<em role="tooltip">{sourceHelp}</em></b>;
@@ -53,7 +59,17 @@ export function ProvisioningForm() {
     return Math.round((required.filter(Boolean).length / required.length) * 100);
   }, [fields]);
   const set = (name: keyof Fields, value: string | boolean) => setFields((current) => ({ ...current, [name]: value }));
-  const generate = () => setFields((current) => ({ ...current, influxAdminPassword: randomSecret(18), influxAdminToken: randomSecret(32), grafanaAdminPassword: randomSecret(18) }));
+  const generate = () => {
+    const prefix = customerPrefix(fields.customerSlug);
+    if (!prefix) { setError("Əvvəlcə Müştəri slug sahəsini doldurun."); return; }
+    setError("");
+    setFields((current) => ({
+      ...current,
+      influxAdminPassword: `HeatDot${prefix}4539@`,
+      influxAdminToken: randomSecret(32),
+      grafanaAdminPassword: `HeatDot${prefix}4539#`,
+    }));
+  };
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setBusy(true); setError("");
     try {
@@ -82,7 +98,7 @@ export function ProvisioningForm() {
       <Field label="Authorization Cloud Key" name="shellyCloudAuthKey" value={fields.shellyCloudAuthKey} onChange={set} type="password" sourceHelp="Shelly Smart Control: User Settings → Authorization cloud key bölməsindən yaradın və kopyalayın." />
       {fields.collectorMode === "hybrid" && <><Field label="OAuth access token" name="shellyOAuthAccessToken" value={fields.shellyOAuthAccessToken} onChange={set} type="password" sourceHelp="Shelly OAuth inteqrasiya prosesinin verdiyi access tokeni daxil edin." /><Field label="User API URL" name="shellyUserApiUrl" value={fields.shellyUserApiUrl} onChange={set} placeholder="https://shelly-xx-eu.shelly.cloud" sourceHelp="Shelly OAuth inteqrasiya məlumatlarında göstərilən HTTPS User API ünvanını daxil edin." /></>}
     </div></section>
-    <section><div className="admin-section-title"><span>03</span><div><h2>InfluxDB və Grafana</h2><p>İstəsəniz təhlükəsiz dəyərləri platforma yaratsın.</p></div><button className="generate-secrets" type="button" onClick={generate}><Sparkles size={15} /> Təhlükəsiz dəyərlər yarat</button></div><div className="admin-form-grid">
+    <section><div className="admin-section-title"><span>03</span><div><h2>InfluxDB və Grafana</h2><p>Parollar müştəri slug prefiksi ilə, admin token isə təsadüfi yaradılır.</p></div><button className="generate-secrets" type="button" onClick={generate}><Sparkles size={15} /> Təhlükəsiz dəyərlər yarat</button></div><div className="admin-form-grid">
       <Field label="Influx organization" name="influxOrg" value={fields.influxOrg} onChange={set} />
       <Field label="Influx bucket" name="influxBucket" value={fields.influxBucket} onChange={set} />
       <Field label="Influx admin username" name="influxAdminUsername" value={fields.influxAdminUsername} onChange={set} />
