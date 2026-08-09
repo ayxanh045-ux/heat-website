@@ -29,6 +29,36 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === "/robots.txt") {
+      return new Response(
+        [
+          "User-agent: *",
+          "Allow: /",
+          "Sitemap: https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/sitemap.xml",
+          "",
+        ].join("\n"),
+        { headers: { "content-type": "text/plain; charset=utf-8" } },
+      );
+    }
+
+    if (url.pathname === "/sitemap.xml") {
+      return new Response(
+        [
+          '<?xml version="1.0" encoding="UTF-8"?>',
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+          "  <url>",
+          "    <loc>https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/</loc>",
+          "    <lastmod>2026-08-09</lastmod>",
+          "    <changefreq>weekly</changefreq>",
+          "    <priority>1.0</priority>",
+          "  </url>",
+          "</urlset>",
+          "",
+        ].join("\n"),
+        { headers: { "content-type": "application/xml; charset=utf-8" } },
+      );
+    }
+
     if (url.pathname === "/googlea393718e45b86574.html") {
       return new Response(
         "google-site-verification: googlea393718e45b86574.html",
