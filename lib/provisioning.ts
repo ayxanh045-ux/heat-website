@@ -119,6 +119,21 @@ export async function encryptProvisioningInput(input: ProvisioningInput): Promis
   return `v1.${base64Url(iv)}.${base64Url(new Uint8Array(ciphertext))}`;
 }
 
+export async function decryptProvisioningInput(payload: string): Promise<ProvisioningInput> {
+  const [version, encodedIv, encodedCiphertext] = payload.split(".");
+  if (version !== "v1" || !encodedIv || !encodedCiphertext) throw new Error("Encrypted payload format is invalid.");
+  const configured = (env as unknown as Record<string, unknown>).PROVISIONING_ENCRYPTION_KEY;
+  const keyBytes = decodeBase64(String(configured ?? ""));
+  if (keyBytes.byteLength !== 32) throw new Error("Provisioning encryption key is not configured.");
+  const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+  const plaintext = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: decodeBase64(encodedIv) },
+    key,
+    decodeBase64(encodedCiphertext),
+  );
+  return validateProvisioningInput(JSON.parse(new TextDecoder().decode(plaintext)));
+}
+
 export function requestIsSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return false;

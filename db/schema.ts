@@ -41,3 +41,12 @@ export const provisioningJobs = sqliteTable(
   },
   (table) => [uniqueIndex("idx_provisioning_jobs_customer_unique").on(table.customerId)],
 );
+
+export const customerSecrets = sqliteTable("customer_secrets", {
+  customerId: text("customer_id").primaryKey().references(() => customers.id, { onDelete: "cascade" }),
+  encryptedPayload: text("encrypted_payload").notNull(),
+  viewCount: integer("view_count").notNull().default(0),
+  lastViewedAt: text("last_viewed_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

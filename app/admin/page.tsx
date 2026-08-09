@@ -3,6 +3,7 @@ import { Activity, ExternalLink, LogOut, RefreshCw, Server, ShieldCheck, Users }
 import Link from "next/link";
 import { requireChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
 import { ProvisioningForm } from "@/components/admin/provisioning-form";
+import { CustomerSecretsButton } from "@/components/admin/customer-secrets-button";
 import { getDb } from "@/db";
 import { customers } from "@/db/schema";
 import { isAdmin } from "@/lib/admin-auth";
@@ -20,7 +21,7 @@ async function CustomerList() {
   catch { databaseReady = false; }
   return <div className="customer-list-card">
     <div className="customer-list-head"><div><h2>Müştəri sistemləri</h2><p>Son 50 deployment və cari vəziyyət.</p></div><a href="/admin"><RefreshCw size={15} /> Yenilə</a></div>
-    {!databaseReady ? <div className="admin-empty"><Server size={26} /><b>Database migration gözlənilir</b><span>İlk deploy zamanı D1 schema avtomatik tətbiq olunacaq.</span></div> : rows.length === 0 ? <div className="admin-empty"><Users size={26} /><b>Hələ müştəri yoxdur</b><span>İlk müştərini aşağıdakı formadan yaradın.</span></div> : <div className="customer-table-wrap"><table><thead><tr><th>Müştəri</th><th>Cihaz</th><th>Rejim</th><th>Status</th><th>Giriş</th></tr></thead><tbody>{rows.map((customer) => <tr key={customer.id}><td><b>{customer.customerName}</b><span>{customer.siteName}</span></td><td><code>{customer.deviceId}</code><span>{customer.deviceName}</span></td><td>{customer.collectorMode}</td><td><i className={`status-pill ${customer.status}`}>{STATUS[customer.status] ?? customer.status}</i></td><td>{customer.status === "active" && customer.grafanaPort ? <a className="grafana-link" href={`http://localhost:${customer.grafanaPort}`}><ExternalLink size={14} /> Grafana</a> : <span>—</span>}</td></tr>)}</tbody></table></div>}
+    {!databaseReady ? <div className="admin-empty"><Server size={26} /><b>Database migration gözlənilir</b><span>İlk deploy zamanı D1 schema avtomatik tətbiq olunacaq.</span></div> : rows.length === 0 ? <div className="admin-empty"><Users size={26} /><b>Hələ müştəri yoxdur</b><span>İlk müştərini aşağıdakı formadan yaradın.</span></div> : <div className="customer-table-wrap"><table><thead><tr><th>Müştəri</th><th>Cihaz</th><th>Rejim</th><th>Status</th><th>Giriş</th><th>Seyf</th></tr></thead><tbody>{rows.map((customer) => <tr key={customer.id}><td><b>{customer.customerName}</b><span>{customer.siteName}</span></td><td><code>{customer.deviceId}</code><span>{customer.deviceName}</span></td><td>{customer.collectorMode}</td><td><i className={`status-pill ${customer.status}`}>{STATUS[customer.status] ?? customer.status}</i></td><td>{customer.status === "active" && customer.grafanaPort ? <a className="grafana-link" href={`http://localhost:${customer.grafanaPort}`}><ExternalLink size={14} /> Grafana</a> : <span>—</span>}</td><td><CustomerSecretsButton customerId={customer.id} customerName={customer.customerName} /></td></tr>)}</tbody></table></div>}
   </div>;
 }
 

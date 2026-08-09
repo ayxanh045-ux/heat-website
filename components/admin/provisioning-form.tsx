@@ -70,7 +70,7 @@ export function ProvisioningForm() {
       <Field label="Shelly Device ID" name="deviceId" value={fields.deviceId} onChange={set} placeholder="a1b2c3d4e5f6" />
       <Field label="Cihaz modeli" name="deviceModel" value={fields.deviceModel} onChange={set} />
     </div></section>
-    <section><div className="admin-section-title"><span>02</span><div><h2>Shelly Cloud</h2><p>Cloud Key yalnız şifrələnmiş halda job queue-da saxlanır.</p></div></div><div className="admin-form-grid">
+    <section><div className="admin-section-title"><span>02</span><div><h2>Shelly Cloud</h2><p>Cloud Key yalnız şifrələnmiş halda müştəri seyfində saxlanır.</p></div></div><div className="admin-form-grid">
       <label className="admin-field"><span>Collector rejimi<b>*</b></span><select value={fields.collectorMode} onChange={(e) => set("collectorMode", e.target.value)}><option value="polling">Polling — ilk quraşdırma</option><option value="hybrid">Hybrid — real-time + fallback</option></select></label>
       <Field label="Server URI" name="shellyServerUri" value={fields.shellyServerUri} onChange={set} placeholder="https://shelly-xx-eu.shelly.cloud" />
       <Field label="Authorization Cloud Key" name="shellyCloudAuthKey" value={fields.shellyCloudAuthKey} onChange={set} type="password" />
@@ -91,6 +91,6 @@ export function ProvisioningForm() {
       <Field label="Default chat ID" name="telegramDefaultChatId" value={fields.telegramDefaultChatId} onChange={set} placeholder="123456789" required={false} />
     </div>}</section>
     {error && <div className="admin-error" role="alert">{error}</div>}
-    <div className="admin-submit-row"><div><ShieldCheck size={18} /><span>Secretlər bazaya açıq mətn kimi yazılmır.</span></div><button disabled={busy} type="submit">{busy ? <Loader2 className="spin" size={17} /> : <Plus size={17} />}{busy ? "Növbəyə əlavə edilir" : "Müştəri sistemini qur"}</button></div>
+    <div className="admin-submit-row"><div><ShieldCheck size={18} /><span>Məlumatlar şifrələnmiş seyfdə saxlanır və yalnız adminə göstərilir.</span></div><button disabled={busy} type="submit">{busy ? <Loader2 className="spin" size={17} /> : <Plus size={17} />}{busy ? "Növbəyə əlavə edilir" : "Müştəri sistemini qur"}</button></div>
   </form>;
 }

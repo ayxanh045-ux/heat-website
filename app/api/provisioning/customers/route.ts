@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { customers, provisioningJobs } from "@/db/schema";
+import { customers, customerSecrets, provisioningJobs } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import {
   encryptProvisioningInput,
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
         ownerEmail: admin.email,
       }),
       db.insert(provisioningJobs).values({ id: jobId, customerId, encryptedPayload }),
+      db.insert(customerSecrets).values({ customerId, encryptedPayload }),
     ]);
     return Response.json({ customerId, jobId, status: "queued" }, { status: 201 });
   } catch (error) {
