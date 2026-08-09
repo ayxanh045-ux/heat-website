@@ -34,3 +34,4 @@
 @media(max-width:720px){.mobile-nav-tools{display:flex;margin-left:auto}.mobile-nav-tools .language-select{display:flex;height:34px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 .honey-field{display:none!important}
+.hero-business{margin:22px 0 4px;padding:15px 17px;border-left:2px solid rgba(59,130,246,.65);background:rgba(59,130,246,.045);border-radius:0 10px 10px 0;text-align:left}.hero-business b{display:block;color:#d8e5ff;font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}.hero-business p{color:#858b96;font-size:11px;line-height:1.55;margin:4px 0}.hero-business p+p{color:#a2a7b0}

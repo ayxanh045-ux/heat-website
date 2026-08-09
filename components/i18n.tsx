@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -33,6 +34,15 @@ const copy: Record<string, Pair> = {
       "HEAT bizneslərə elektrik istehlakını, xərcləri və gizli enerji israfını vahid ağıllı platformada real vaxtda göstərir.",
       "HEAT в реальном времени показывает бизнесу потребление электроэнергии, расходы и скрытые потери — на одной интеллектуальной платформе.",
     ],
+  "What HEAT does": ["HEAT nə edir", "Что делает HEAT"],
+  "HEAT combines smart monitoring hardware with cloud analytics for restaurants, hotels, offices, retail stores and multi-location businesses.": [
+    "HEAT restoranlar, otellər, ofislər, mağazalar və çoxsaylı filialı olan bizneslər üçün ağıllı monitorinq avadanlığını bulud analitikası ilə birləşdirir.",
+    "HEAT объединяет умное оборудование мониторинга и облачную аналитику для ресторанов, отелей, офисов, магазинов и сетевого бизнеса.",
+  ],
+  "Track live power and costs, detect after-hours waste, receive alerts and turn daily energy data into clear operational decisions.": [
+    "Canlı gücü və xərcləri izləyin, iş saatlarından sonrakı israfı aşkarlayın, bildirişlər alın və gündəlik enerji məlumatını aydın əməliyyat qərarlarına çevirin.",
+    "Отслеживайте мощность и расходы, выявляйте потери после закрытия, получайте уведомления и превращайте ежедневные данные в понятные операционные решения.",
+  ],
   "Request a Demo": ["Demo sifariş et", "Запросить демо"],
   "Explore Platform": ["Platformanı kəşf et", "Открыть платформу"],
   "Real-time monitoring": [
@@ -378,7 +388,7 @@ Object.entries(copy).forEach(([en, [a, r]]) => {
 const C = createContext<{
   language: Language;
   setLanguage: (x: Language) => void;
-}>({ language: "en", setLanguage: () => {} });
+}>({ language: "az", setLanguage: () => {} });
 function tx(value: string, language: Language) {
   const l = value.match(/^\s*/)?.[0] ?? "",
     r = value.match(/\s*$/)?.[0] ?? "",
@@ -392,12 +402,13 @@ function tx(value: string, language: Language) {
   );
 }
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLang] = useState<Language>("en");
+  const [language, setLang] = useState<Language>("az");
   useEffect(() => {
     const x = localStorage.getItem("heat-language") as Language;
     if (["en", "az", "ru"].includes(x)) setLang(x);
+    else localStorage.setItem("heat-language", "az");
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.lang = language;
     const root = document.getElementById("heat-site");
     if (!root) return;
