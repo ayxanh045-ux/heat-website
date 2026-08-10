@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { customerSecrets } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
+import { DEMO_CUSTOMER, demoDailyMetrics } from "@/lib/demo-customer";
 import { decryptProvisioningInput, requestIsSameOrigin } from "@/lib/provisioning";
 
 export async function POST(request: Request) {
@@ -16,12 +17,16 @@ export async function POST(request: Request) {
     if (!values.telegramEnabled || !values.telegramBotToken || !values.telegramDefaultChatId) {
       return Response.json({ error: "Telegram aktiv deyil və ya bot token/chat ID çatışmır." }, { status: 400 });
     }
+    const metrics = demoDailyMetrics();
+    const text = customerId === DEMO_CUSTOMER.id
+      ? `📊 HEAT — Günlük enerji hesabatı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nTarix: ${metrics.dateKey}\n\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🔋 Son tamamlanmış gün: ${metrics.latestEnergyKwh} kWh\n💰 Aylıq proqnoz: ${metrics.projectedCostAzn} AZN (${metrics.projectedKwh} kWh)\n\n✅ Status: Normal\n💡 Tövsiyə: İstehlak normaldır. Hazırda müdaxilə tələb olunmur.`
+      : `✅ HEAT test bildirişi\n\n${values.customerName}\n${values.siteName}\n\nTelegram bağlantısı uğurla işləyir.`;
     const telegram = await fetch(`https://api.telegram.org/bot${values.telegramBotToken}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         chat_id: values.telegramDefaultChatId,
-        text: `✅ HEAT test bildirişi\n\n${values.customerName}\n${values.siteName}\n\nTelegram bağlantısı uğurla işləyir.`,
+        text,
       }),
       signal: AbortSignal.timeout(10000),
     });
