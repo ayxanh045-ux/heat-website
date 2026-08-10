@@ -39,6 +39,6 @@ export function AdminPwaInstall() {
       {installed ? <MonitorSmartphone size={16} /> : <Download size={16} />}
       <span><b>{installed ? "Admin tətbiqi açıqdır" : "Admin tətbiqini quraşdır"}</b><small>{installed ? "Ayrıca app rejimində" : "Bu cihazda ayrıca aç"}</small></span>
     </button>
-    {help && !installed && <p>Safari: paylaş düyməsinə basın və “Add to Home Screen” seçin. Chrome: ünvan sətrindəki quraşdırma işarəsinə basın.</p>}
+    {help && !installed && <p>Mac Safari: File → Add to Dock. iPhone/iPad: Share → Add to Home Screen. Chrome: ünvan sətrindəki quraşdırma işarəsi.</p>}
   </div>;
 }
