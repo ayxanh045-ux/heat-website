@@ -1,0 +1,16 @@
+{
+  "id": "/admin/",
+  "name": "HEAT Admin Control Panel",
+  "short_name": "HEAT Admin",
+  "description": "Müştəri sistemlərini, tokenləri və enerji dashboardlarını idarə edin.",
+  "start_url": "/admin",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
+  "orientation": "any",
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
