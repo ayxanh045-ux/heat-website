@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, ChevronDown, Globe2, Menu, X } from "lucide-react";
+import { ArrowDown, ChevronDown, Globe2, LogIn, Menu, X } from "lucide-react";
 import { HeroDashboard } from "./dashboard";
 import { Button, Logo, Reveal } from "./ui";
 import {
@@ -68,6 +68,7 @@ function Navbar() {
         </nav>
         <div className="nav-actions">
           <LanguageSelect />
+          <a className="customer-portal-link" href="/customer"><LogIn size={14} /> Müştəri girişi</a>
           <Button href="#contact">Request Demo</Button>
         </div>
         <div className="mobile-nav-tools">
@@ -93,6 +94,7 @@ function Navbar() {
                   {x}
                 </a>
               ))}
+              <a href="/customer" onClick={() => setOpen(false)}>Müştəri girişi</a>
               <Button href="#contact">Request Demo</Button>
             </motion.div>
           )}
