@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CheckCircle2, Eye, EyeOff, Loader2, Plus, ShieldCheck, Sparkles } from "lucide-react";
+import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
 
 type Fields = {
   customerName: string; customerSlug: string; siteName: string; deviceName: string;
@@ -23,7 +24,7 @@ const INITIAL: Fields = {
   shellyServerUri: "", shellyCloudAuthKey: "", shellyOAuthAccessToken: "", shellyUserApiUrl: "",
   influxOrg: "HEAT", influxBucket: "energy", influxAdminUsername: "heat-admin", influxAdminPassword: "", influxAdminToken: "",
   grafanaAdminUsername: "admin", grafanaAdminPassword: "", telegramEnabled: false,
-  electricityTariffAznPerKwh: "0.11",
+  electricityTariffAznPerKwh: String(ELECTRICITY_TARIFF_AZN_PER_KWH),
   telegramBotToken: "", telegramAllowedChatIds: "", telegramDefaultChatId: "",
   telegramReportCount: 1, telegramReportTimes: "09:00",
   phaseALabel: "Faza A", phaseBLabel: "Faza B", phaseCLabel: "Faza C",
@@ -45,14 +46,14 @@ function RequiredMark({ sourceHelp }: { sourceHelp?: string }) {
   return <b className="field-required sourced" aria-label={`Məcburi xarici məlumat. ${sourceHelp}`}>*<em role="tooltip">{sourceHelp}</em></b>;
 }
 
-function Field({ label, name, value, onChange, type = "text", placeholder, required = true, sourceHelp }: {
+function Field({ label, name, value, onChange, type = "text", placeholder, required = true, sourceHelp, disabled = false }: {
   label: string; name: keyof Fields; value: string; onChange: (name: keyof Fields, value: string) => void;
-  type?: string; placeholder?: string; required?: boolean; sourceHelp?: string;
+  type?: string; placeholder?: string; required?: boolean; sourceHelp?: string; disabled?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   const secret = type === "password";
   return <label className="admin-field"><span>{label}{required && <RequiredMark sourceHelp={sourceHelp} />}</span><div className="admin-input-wrap">
-    <input name={name} value={value} required={required} type={secret && visible ? "text" : type} placeholder={placeholder} onChange={(event) => onChange(name, event.target.value)} autoComplete="off" />
+    <input name={name} value={value} required={required} type={secret && visible ? "text" : type} placeholder={placeholder} onChange={(event) => onChange(name, event.target.value)} autoComplete="off" disabled={disabled} />
     {secret && <button type="button" onClick={() => setVisible(!visible)} aria-label={visible ? "Dəyəri gizlət" : "Dəyəri göstər"}>{visible ? <EyeOff size={16} /> : <Eye size={16} />}</button>}
   </div></label>;
 }
@@ -123,7 +124,7 @@ export function ProvisioningForm() {
       <Field label="Influx init admin token" name="influxAdminToken" value={fields.influxAdminToken} onChange={set} type="password" />
       <Field label="Grafana admin username" name="grafanaAdminUsername" value={fields.grafanaAdminUsername} onChange={set} />
       <Field label="Grafana admin password" name="grafanaAdminPassword" value={fields.grafanaAdminPassword} onChange={set} type="password" />
-      <Field label="Elektrik tarifi — AZN/kWh" name="electricityTariffAznPerKwh" value={fields.electricityTariffAznPerKwh} onChange={set} placeholder="0.11" sourceHelp="Müştərinin elektrik hesab-fakturasında və ya təchizatçı müqaviləsində göstərilən 1 kWh tarifini daxil edin." />
+      <Field label="Elektrik tarifi — sabit AZN/kWh" name="electricityTariffAznPerKwh" value={fields.electricityTariffAznPerKwh} onChange={set} required={false} disabled />
     </div><div className="auto-token-note"><ShieldCheck size={16} /><span>Write, analytics-read və Grafana-read tokenləri quraşdırma zamanı avtomatik yaradılır.</span></div></section>
     <section><div className="admin-section-title"><span>04</span><div><h2>Telegram</h2><p>İstəyə bağlı bildiriş və hesabat kanalı.</p></div><label className="admin-switch"><input type="checkbox" checked={fields.telegramEnabled} onChange={(e) => set("telegramEnabled", e.target.checked)} /><i /><span>Aktiv et</span></label></div>{fields.telegramEnabled && <div className="admin-form-grid">
       <Field label="Bot token" name="telegramBotToken" value={fields.telegramBotToken} onChange={set} type="password" sourceHelp="Telegram-da @BotFather açın, /newbot əmri ilə bot yaradın və verilən tokeni kopyalayın." />

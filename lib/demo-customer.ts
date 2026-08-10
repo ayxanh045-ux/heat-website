@@ -1,3 +1,5 @@
+import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
+
 export const DEMO_CUSTOMER = {
   id: "demo-caspian-coffee",
   customerName: "Caspian Coffee · DEMO",
@@ -26,7 +28,7 @@ export const DEMO_EDIT_VALUES = {
   influxAdminToken: "demo-influx-token-not-real",
   grafanaAdminUsername: "admin",
   grafanaAdminPassword: "HeatDotdc4539#",
-  electricityTariffAznPerKwh: 0.11,
+  electricityTariffAznPerKwh: ELECTRICITY_TARIFF_AZN_PER_KWH,
   telegramEnabled: false,
   telegramReportCount: 1,
   telegramReportTimes: "09:00",
@@ -74,7 +76,7 @@ export function demoDailyMetrics(dateKey = bakuDateKey()) {
     completedDays,
     daysInMonth,
     projectedKwh: Math.round(projectedKwh).toLocaleString("en-US"),
-    projectedCostAzn: (projectedKwh * 0.11).toFixed(2),
+    projectedCostAzn: (projectedKwh * ELECTRICITY_TARIFF_AZN_PER_KWH).toFixed(2),
   };
 }
 
@@ -123,7 +125,7 @@ export function demoOperationalMetrics(now = new Date()) {
     peakTime: `${12 + Math.floor(random() * 5)}:${random() > 0.5 ? "15" : "40"}`,
     previous24hKwh: previous24h.toFixed(1),
     changePercent: changePercent.toFixed(1),
-    monthActualCostAzn: (Number(daily.actualEnergyKwh) * 0.11).toFixed(2),
+    monthActualCostAzn: (Number(daily.actualEnergyKwh) * ELECTRICITY_TARIFF_AZN_PER_KWH).toFixed(2),
     signalDbm: String(-48 - Math.floor(random() * 9)),
     uptimeDays: String(18 + Math.floor(random() * 12)),
   };

@@ -1,0 +1,1 @@
+export const ELECTRICITY_TARIFF_AZN_PER_KWH = 0.125;
