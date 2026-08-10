@@ -97,6 +97,7 @@ export function demoOperationalMetrics(now = new Date()) {
   const latestEnergy = Number(daily.latestEnergyKwh);
   const blockWeights = [0.12, 0.27, 0.39, 0.22];
   const blocks = blockWeights.map((weight) => latestEnergy * weight);
+  const phaseEnergy = [latestEnergy * shareA, latestEnergy * shareB, latestEnergy * (1 - shareA - shareB)];
   const previous24h = latestEnergy * (0.94 + random() * 0.09);
   const changePercent = ((latestEnergy - previous24h) / previous24h) * 100;
   const activeHours = Math.max(0, hour + minute / 60 - 7);
@@ -108,6 +109,8 @@ export function demoOperationalMetrics(now = new Date()) {
     phasePowersKw: phasePowers.map((value) => value.toFixed(2)),
     phaseVoltagesV: voltages.map((value) => value.toFixed(1)),
     phaseCurrentsA: phasePowers.map((value, index) => ((value * 1000) / voltages[index]).toFixed(1)),
+    phaseEnergyKwh: phaseEnergy.map((value) => value.toFixed(1)),
+    phaseSharesPct: phaseEnergy.map((value) => ((value / latestEnergy) * 100).toFixed(1)),
     blockEnergyKwh: blocks.map((value) => value.toFixed(1)),
     averagePowerKw: (latestEnergy / 24).toFixed(2),
     peakPowerKw: (power * (1.52 + random() * 0.12)).toFixed(2),
