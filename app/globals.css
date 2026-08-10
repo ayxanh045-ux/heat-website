@@ -56,6 +56,7 @@
 @media(max-width:600px){.customer-dashboard-page{padding:22px 14px 60px}.customer-dash-head{display:block}.dash-scenarios{margin-top:14px}.customer-demo-note{align-items:flex-start;flex-wrap:wrap}.customer-demo-note p{width:100%;margin:0}.customer-pipeline,.customer-metrics{grid-template-columns:1fr}.customer-dash-head h1{font-size:31px}.customer-chart svg{height:190px}.open-real-grafana{width:100%;justify-content:center}}
 .status-pill.demo{color:#80afff;background:rgba(59,130,246,.12)}
 .demo-customer-row{background:rgba(59,130,246,.025)}
+.demo-mobile-account{display:block;min-width:178px}.demo-mobile-account b{color:#72d596!important;font-size:8px!important}.demo-mobile-account code{display:block;margin-top:5px;color:#9bbcf4;font-size:7px;white-space:nowrap}.demo-mobile-account:hover code{color:#d2e1fb}
 
 /* Customer installable mobile app */
 .app-token-open{height:31px;border:1px solid rgba(34,197,94,.2);background:rgba(34,197,94,.07);color:#72d596;border-radius:7px;padding:0 9px;display:inline-flex;align-items:center;gap:6px;font-size:8px;white-space:nowrap;cursor:pointer}.app-token-open:disabled{opacity:.55}
