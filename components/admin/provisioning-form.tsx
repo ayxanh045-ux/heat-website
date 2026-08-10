@@ -10,7 +10,11 @@ type Fields = {
   influxOrg: string; influxBucket: string; influxAdminUsername: string; influxAdminPassword: string; influxAdminToken: string;
   grafanaAdminUsername: string; grafanaAdminPassword: string; telegramEnabled: boolean;
   telegramBotToken: string; telegramAllowedChatIds: string; telegramDefaultChatId: string;
+  telegramReportCount: number; telegramReportTimes: string;
+  phaseALabel: string; phaseBLabel: string; phaseCLabel: string;
 };
+
+const DEFAULT_REPORT_TIMES = ["09:00", "13:00", "18:00", "22:00", "01:00", "05:00"];
 
 const INITIAL: Fields = {
   customerName: "", customerSlug: "", siteName: "", deviceName: "Baş elektrik paneli",
@@ -19,6 +23,8 @@ const INITIAL: Fields = {
   influxOrg: "HEAT", influxBucket: "energy", influxAdminUsername: "heat-admin", influxAdminPassword: "", influxAdminToken: "",
   grafanaAdminUsername: "admin", grafanaAdminPassword: "", telegramEnabled: false,
   telegramBotToken: "", telegramAllowedChatIds: "", telegramDefaultChatId: "",
+  telegramReportCount: 1, telegramReportTimes: "09:00",
+  phaseALabel: "Faza A", phaseBLabel: "Faza B", phaseCLabel: "Faza C",
 };
 
 function randomSecret(length = 32): string {
@@ -58,7 +64,16 @@ export function ProvisioningForm() {
     const required = [fields.customerName, fields.customerSlug, fields.siteName, fields.deviceId, fields.shellyServerUri, fields.shellyCloudAuthKey, fields.influxAdminPassword, fields.influxAdminToken, fields.grafanaAdminPassword];
     return Math.round((required.filter(Boolean).length / required.length) * 100);
   }, [fields]);
-  const set = (name: keyof Fields, value: string | boolean) => setFields((current) => ({ ...current, [name]: value }));
+  const set = (name: keyof Fields, value: string | boolean | number) => setFields((current) => ({ ...current, [name]: value }));
+  const setReportCount = (count: number) => setFields((current) => {
+    const existing = current.telegramReportTimes.split(",").filter(Boolean);
+    const times = Array.from({ length: count }, (_, index) => existing[index] || DEFAULT_REPORT_TIMES[index]);
+    return { ...current, telegramReportCount: count, telegramReportTimes: times.join(",") };
+  });
+  const setReportTime = (index: number, value: string) => setFields((current) => {
+    const times = current.telegramReportTimes.split(","); times[index] = value;
+    return { ...current, telegramReportTimes: times.join(",") };
+  });
   const generate = () => {
     const prefix = customerPrefix(fields.customerSlug);
     if (!prefix) { setError("Əvvəlcə Müştəri slug sahəsini doldurun."); return; }
@@ -111,6 +126,11 @@ export function ProvisioningForm() {
       <Field label="Bot token" name="telegramBotToken" value={fields.telegramBotToken} onChange={set} type="password" sourceHelp="Telegram-da @BotFather açın, /newbot əmri ilə bot yaradın və verilən tokeni kopyalayın." />
       <Field label="Allowed chat ID-lər" name="telegramAllowedChatIds" value={fields.telegramAllowedChatIds} onChange={set} placeholder="123456789,-100123456789" sourceHelp="Bota mesaj göndərin, sonra Bot API getUpdates cavabındakı message.chat.id dəyərini götürün." />
       <Field label="Default chat ID" name="telegramDefaultChatId" value={fields.telegramDefaultChatId} onChange={set} placeholder="123456789" required={false} />
+      <label className="admin-field"><span>Gündəlik avtomatik report sayı<RequiredMark /></span><select value={fields.telegramReportCount} onChange={(event) => setReportCount(Number(event.target.value))}>{[1,2,3,4,5,6].map(count => <option key={count} value={count}>{count} dəfə</option>)}</select></label>
+      {Array.from({ length: fields.telegramReportCount }, (_, index) => <label className="admin-field" key={index}><span>Avtomatik report {index + 1} — saat<RequiredMark /></span><input type="time" value={fields.telegramReportTimes.split(",")[index] || ""} onChange={event => setReportTime(index, event.target.value)} required /></label>)}
+      <Field label="Faza A adı" name="phaseALabel" value={fields.phaseALabel} onChange={set} placeholder="Zal + Kondisioner" />
+      <Field label="Faza B adı" name="phaseBLabel" value={fields.phaseBLabel} onChange={set} placeholder="Mətbəx" />
+      <Field label="Faza C adı" name="phaseCLabel" value={fields.phaseCLabel} onChange={set} placeholder="İşıqlandırma + Anbar" />
     </div>}</section>
     {error && <div className="admin-error" role="alert">{error}</div>}
     <div className="admin-submit-row"><div><ShieldCheck size={18} /><span>Məlumatlar şifrələnmiş seyfdə saxlanır və yalnız adminə göstərilir.</span></div><button disabled={busy} type="submit">{busy ? <Loader2 className="spin" size={17} /> : <Plus size={17} />}{busy ? "Növbəyə əlavə edilir" : "Müştəri sistemini qur"}</button></div>

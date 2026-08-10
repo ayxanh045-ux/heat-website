@@ -27,6 +27,11 @@ export const DEMO_EDIT_VALUES = {
   grafanaAdminUsername: "admin",
   grafanaAdminPassword: "HeatDotdc4539#",
   telegramEnabled: false,
+  telegramReportCount: 1,
+  telegramReportTimes: "09:00",
+  phaseALabel: "Zal + Kondisioner",
+  phaseBLabel: "Mətbəx",
+  phaseCLabel: "İşıqlandırma + Anbar",
 };
 
 export function bakuDateKey(now = new Date()): string {

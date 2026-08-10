@@ -24,11 +24,17 @@ export type ProvisioningInput = {
   telegramBotToken?: string;
   telegramAllowedChatIds?: string;
   telegramDefaultChatId?: string;
+  telegramReportCount: number;
+  telegramReportTimes: string;
+  phaseALabel: string;
+  phaseBLabel: string;
+  phaseCLabel: string;
 };
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DEVICE_ID = /^[a-zA-Z0-9]+$/;
 const CHAT_IDS = /^-?\d+(?:\s*,\s*-?\d+)*$/;
+const REPORT_TIME = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
 function cleanString(value: unknown, maximum = 200): string {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
@@ -59,6 +65,8 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
   const telegramEnabled = input.telegramEnabled === true;
   const telegramAllowedChatIds = cleanString(input.telegramAllowedChatIds, 300);
   const telegramDefaultChatId = cleanString(input.telegramDefaultChatId, 50);
+  const reportCount = Number(input.telegramReportCount ?? 1);
+  const reportTimes = (cleanString(input.telegramReportTimes, 100) || "09:00").split(",").map((value) => value.trim()).filter(Boolean);
   if (!customerName || !siteName || !deviceName) throw new Error("Müştəri, obyekt və cihaz adı tələb olunur.");
   if (!SLUG.test(customerSlug)) throw new Error("Slug yalnız kiçik hərf, rəqəm və tire daşımalıdır.");
   if (!DEVICE_ID.test(deviceId)) throw new Error("Shelly Device ID düzgün formatda deyil.");
@@ -67,6 +75,8 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
   if (influxAdminToken.length < 16) throw new Error("InfluxDB init token ən azı 16 simvol olmalıdır.");
   if (telegramEnabled && (!telegramAllowedChatIds || !CHAT_IDS.test(telegramAllowedChatIds))) throw new Error("Telegram aktivdirsə düzgün chat ID allowlist tələb olunur.");
   if (telegramDefaultChatId && !telegramAllowedChatIds.split(",").map((x) => x.trim()).includes(telegramDefaultChatId)) throw new Error("Default Telegram chat ID allowlist daxilində olmalıdır.");
+  if (!Number.isInteger(reportCount) || reportCount < 1 || reportCount > 6) throw new Error("Gündəlik report sayı 1–6 aralığında olmalıdır.");
+  if (reportTimes.length !== reportCount || reportTimes.some((value) => !REPORT_TIME.test(value)) || new Set(reportTimes).size !== reportTimes.length) throw new Error("Report saatlarını düzgün və təkrarsız HH:MM formatında daxil edin.");
   const result: ProvisioningInput = {
     customerName, customerSlug, siteName, deviceName, deviceId,
     deviceModel: cleanString(input.deviceModel, 100) || "Shelly Pro 3EM",
@@ -80,6 +90,11 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
     influxAdminPassword, influxAdminToken,
     grafanaAdminUsername: cleanString(input.grafanaAdminUsername, 100) || "admin",
     grafanaAdminPassword, telegramEnabled,
+    telegramReportCount: reportCount,
+    telegramReportTimes: reportTimes.join(","),
+    phaseALabel: cleanString(input.phaseALabel, 60) || "Faza A",
+    phaseBLabel: cleanString(input.phaseBLabel, 60) || "Faza B",
+    phaseCLabel: cleanString(input.phaseCLabel, 60) || "Faza C",
   };
   if (!result.shellyCloudAuthKey) throw new Error("Shelly Cloud Key tələb olunur.");
   if (collectorMode === "hybrid") {
