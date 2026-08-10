@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { desc, ne } from "drizzle-orm";
 import { Activity, ExternalLink, LogOut, RefreshCw, Server, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { requireChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
@@ -19,7 +19,7 @@ const STATUS: Record<string, string> = {
 async function CustomerList() {
   let rows: (typeof customers.$inferSelect)[] = [];
   let databaseReady = true;
-  try { rows = await getDb().select().from(customers).orderBy(desc(customers.createdAt)).limit(50); }
+  try { rows = await getDb().select().from(customers).where(ne(customers.id, DEMO_CUSTOMER.id)).orderBy(desc(customers.createdAt)).limit(50); }
   catch { databaseReady = false; }
   return <div className="customer-list-card">
     <div className="customer-list-head"><div><h2>Müştəri sistemləri</h2><p>Demo hesabı və son 50 real deployment.</p></div><a href="/admin"><RefreshCw size={15} /> Yenilə</a></div>
