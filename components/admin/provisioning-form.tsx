@@ -83,9 +83,9 @@ export function ProvisioningForm() {
     setError("");
     setFields((current) => ({
       ...current,
-      influxAdminPassword: `HeatDot${prefix}4539@`,
+      influxAdminPassword: `HeatDot${prefix}12345674539@${randomSecret(8)}`,
       influxAdminToken: randomSecret(32),
-      grafanaAdminPassword: `HeatDot${prefix}4539#`,
+      grafanaAdminPassword: `HeatDot${prefix}12345674539#${randomSecret(8)}`,
     }));
   };
   const submit = async (event: React.FormEvent) => {

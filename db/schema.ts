@@ -80,3 +80,19 @@ export const telegramReportDeliveries = sqliteTable(
   },
   (table) => [uniqueIndex("idx_telegram_report_delivery_unique").on(table.customerId, table.scheduledFor)],
 );
+
+export const adminDevices = sqliteTable("admin_devices", {
+  id: text("id").primaryKey(),
+  tokenHash: text("token_hash").notNull().unique(),
+  enrolledByEmail: text("enrolled_by_email").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  lastSeenAt: text("last_seen_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const customerLoginAttempts = sqliteTable("customer_login_attempts", {
+  fingerprint: text("fingerprint").primaryKey(),
+  failureCount: integer("failure_count").notNull().default(0),
+  windowStartedAt: text("window_started_at").notNull(),
+  blockedUntil: text("blocked_until"),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

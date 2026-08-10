@@ -1,14 +1,14 @@
 import { desc, ne } from "drizzle-orm";
-import { Activity, ExternalLink, LogOut, Pencil, RefreshCw, Server, ShieldCheck, Users } from "lucide-react";
+import { Activity, ExternalLink, LogOut, Pencil, RefreshCw, Server, Users } from "lucide-react";
 import Link from "next/link";
-import { requireChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
+import { chatGPTSignOutPath } from "@/app/chatgpt-auth";
 import { ProvisioningForm } from "@/components/admin/provisioning-form";
 import { CustomerSecretsButton } from "@/components/admin/customer-secrets-button";
 import { CustomerAppToken } from "@/components/admin/customer-app-token";
 import { DemoMobileAccount } from "@/components/admin/demo-mobile-account";
 import { getDb } from "@/db";
 import { customers } from "@/db/schema";
-import { isAdmin } from "@/lib/admin-auth";
+import { requireAdminUser } from "@/lib/admin-auth";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +33,7 @@ async function CustomerList() {
 }
 
 export default async function AdminPage() {
-  const user = await requireChatGPTUser("/admin");
-  if (!isAdmin(user)) return <main className="admin-denied"><ShieldCheck size={44} /><h1>Bu bölməyə giriş yoxdur</h1><p>{user.email} admin allowlist-də deyil.</p><a href={chatGPTSignOutPath("/")}>Başqa hesabla daxil ol</a></main>;
+  const user = await requireAdminUser("/admin");
   return <div className="admin-shell">
     <aside className="admin-sidebar"><Link className="admin-brand" href="/"><span>H</span><div><b>HEAT</b><small>CONTROL PLANE</small></div></Link><nav><a className="active" href="/admin"><Activity size={17} /> Provisioning</a><a href="#customers"><Users size={17} /> Müştərilər</a></nav><div className="admin-user"><span>{user.displayName.slice(0, 1).toUpperCase()}</span><div><b>{user.displayName}</b><small>{user.email}</small></div><a href={chatGPTSignOutPath("/")} aria-label="Çıxış"><LogOut size={16} /></a></div></aside>
     <main className="admin-main"><header><div><span className="admin-kicker">MULTI-TENANT ONBOARDING</span><h1>Yeni müştəri sistemi</h1><p>Məlumatları daxil edin — provisioner ayrıca və izolə edilmiş enerji monitorinq sistemi qursun.</p></div><div className="agent-state"><i /><span>Provisioner agent</span><b>Gözləyir</b></div></header><section id="customers"><CustomerList /></section><ProvisioningForm /></main>

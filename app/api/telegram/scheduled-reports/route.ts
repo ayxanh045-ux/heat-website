@@ -5,10 +5,15 @@ import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput } from "@/lib/provisioning";
 import { callTelegram, demoTelegramReply } from "@/lib/telegram";
 import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/telegram-scheduler";
+import { getAdminUser } from "@/lib/admin-auth";
+import { requestIsSameOrigin } from "@/lib/provisioning";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!requestIsSameOrigin(request) || !await getAdminUser()) {
+    return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
+  }
   const db = getDb();
   const now = new Date();
   let sent = 0;
