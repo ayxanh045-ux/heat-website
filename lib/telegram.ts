@@ -1,5 +1,5 @@
 import type { ProvisioningInput } from "@/lib/provisioning";
-import { demoDailyMetrics } from "@/lib/demo-customer";
+import { demoOperationalMetrics } from "@/lib/demo-customer";
 
 export const TELEGRAM_COMMANDS = [
   { command: "start", description: "HEAT botunu aç" },
@@ -46,18 +46,24 @@ export async function callTelegram<T extends { ok?: boolean; description?: strin
 }
 
 export function demoTelegramReply(command: string, values: ProvisioningInput): string {
-  const metrics = demoDailyMetrics();
-  const help = `👋 HEAT enerji botu\n\nMəlumatınızı istədiyiniz vaxt bu komandalarla görə bilərsiniz:\n/status — hazırkı vəziyyət\n/report — ətraflı hesabat\n/last24h — son 24 saat\n/devices — cihaz məlumatı\n/help — komandalar`;
-  if (command === "/start" || command === "/help") return help;
+  const metrics = demoOperationalMetrics();
+  const help = `🧭 HEAT — Komanda menyusu\n\n/status\nAni güc, fazalar, gərginlik və sistem vəziyyəti.\n\n/report\nBugünkü, aylıq və maliyyə göstəriciləri ilə tam hesabat.\n\n/last24h\nSon 24 saatın vaxt aralıqları, pik nöqtəsi və əvvəlki günlə müqayisəsi.\n\n/devices\nShelly cihazı, bağlantı və məlumat axınının texniki vəziyyəti.\n\nMəlumatlar yalnız siz istəyəndə göndərilir.`;
+  if (command === "/start") {
+    return `👋 HEAT enerji botuna xoş gəlmisiniz\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\n\n✅ Sistem işləyir\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🕒 Son yenilənmə: ${metrics.time}\n\nƏtraflı baxmaq üçün /status yazın. Bütün seçimlər üçün /help yazın.`;
+  }
+  if (command === "/help") return help;
   if (command === "/status") {
-    return `✅ HEAT — Hazırkı status\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\n⚡ Güc: ${metrics.powerKw} kW\n🔋 Son tamamlanmış gün: ${metrics.latestEnergyKwh} kWh\n💰 Aylıq proqnoz: ${metrics.projectedCostAzn} AZN\n\nStatus: Normal`;
+    return `✅ HEAT — Canlı vəziyyət\n\n🏢 ${values.siteName}\n🕒 Ölçü vaxtı: ${metrics.time}\n\n⚡ Ümumi güc: ${metrics.powerKw} kW\n• Faza A: ${metrics.phasePowersKw[0]} kW · ${metrics.phaseVoltagesV[0]} V · ${metrics.phaseCurrentsA[0]} A\n• Faza B: ${metrics.phasePowersKw[1]} kW · ${metrics.phaseVoltagesV[1]} V · ${metrics.phaseCurrentsA[1]} A\n• Faza C: ${metrics.phasePowersKw[2]} kW · ${metrics.phaseVoltagesV[2]} V · ${metrics.phaseCurrentsA[2]} A\n\n🔋 Bu gün: ${metrics.todayEnergyKwh} kWh\n📡 Məlumat axını: Aktiv\n🟢 Qiymətləndirmə: Normal\n\nHeç bir kritik yük və ya faza balanssızlığı aşkarlanmayıb.`;
   }
   if (command === "/devices") {
-    return `🔌 HEAT — Qoşulmuş cihaz\n\nObyekt: ${values.siteName}\nCihaz: ${values.deviceName}\nDevice ID: ${values.deviceId}\nBağlantı: Aktiv`;
+    return `🔌 HEAT — Cihaz və bağlantı\n\n🏢 Obyekt: ${values.siteName}\n📟 Cihaz: ${values.deviceName}\n🆔 Device ID: ${values.deviceId}\n🧩 Model: ${values.deviceModel}\n\n☁️ Shelly Cloud: Qoşulub\n📡 Siqnal: ${metrics.signalDbm} dBm · Yaxşı\n⏱ Fasiləsiz iş: ${metrics.uptimeDays} gün\n📥 InfluxDB məlumat axını: Aktiv\n📊 Dashboard: Hazırdır\n🔔 Telegram xəbərdarlıqları: Aktiv\n\nSon məlumat: bu gün ${metrics.time}`;
   }
-  if (command === "/report" || command === "/last24h") {
-    const title = command === "/last24h" ? "Son 24 saatın enerji hesabatı" : "Ətraflı enerji hesabatı";
-    return `📊 HEAT — ${title}\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nTarix: ${metrics.dateKey}\n\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🔋 Son tamamlanmış gün: ${metrics.latestEnergyKwh} kWh\n💰 Aylıq proqnoz: ${metrics.projectedCostAzn} AZN (${metrics.projectedKwh} kWh)\n\n✅ Status: Normal\n💡 Tövsiyə: İstehlak normaldır. Hazırda müdaxilə tələb olunmur.`;
+  if (command === "/report") {
+    return `📊 HEAT — Ətraflı enerji hesabatı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nTarix: ${metrics.dateKey}\n\nBUGÜN\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🔋 Bu gün indiyədək: ${metrics.todayEnergyKwh} kWh\n📅 Son tamamlanmış gün: ${metrics.latestEnergyKwh} kWh\n\nBU AY\n📈 İndiyədək sərfiyyat: ${metrics.actualEnergyKwh} kWh\n📊 Günlük orta: ${metrics.averageDailyKwh} kWh\n💳 İndiyədək hesablanan xərc: ${metrics.monthActualCostAzn} AZN\n🔮 Ay sonu proqnozu: ${metrics.projectedKwh} kWh · ${metrics.projectedCostAzn} AZN\n\n💡 HEAT tövsiyəsi\nİstehlak normal diapazondadır. Pik saatlarda çay aparatı və digər yüksək güclü cihazları eyni anda işə salmamaq aylıq xərci azaltmağa kömək edə bilər.`;
+  }
+  if (command === "/last24h") {
+    const direction = Number(metrics.changePercent) >= 0 ? "artıb" : "azalıb";
+    return `🕘 HEAT — Son 24 saat\n\n🏢 ${values.siteName}\n📅 ${metrics.dateKey}\n\nSAAT ARALIQLARI\n00:00–06:00  ${metrics.blockEnergyKwh[0]} kWh\n06:00–12:00  ${metrics.blockEnergyKwh[1]} kWh\n12:00–18:00  ${metrics.blockEnergyKwh[2]} kWh\n18:00–24:00  ${metrics.blockEnergyKwh[3]} kWh\n\n🔋 Cəmi: ${metrics.latestEnergyKwh} kWh\n⚡ Orta güc: ${metrics.averagePowerKw} kW\n🔺 Pik güc: ${metrics.peakPowerKw} kW · saat ${metrics.peakTime}\n\nMÜQAYİSƏ\nƏvvəlki 24 saat: ${metrics.previous24hKwh} kWh\nİstehlak ${Math.abs(Number(metrics.changePercent)).toFixed(1)}% ${direction}.\n\n${Number(metrics.changePercent) > 5 ? "⚠️ Artım var. Pik saatdakı cihazları yoxlamaq faydalıdır." : "✅ Kəskin dəyişiklik aşkarlanmayıb."}`;
   }
   return `Bu komanda tanınmadı.\n\n${help}`;
 }
