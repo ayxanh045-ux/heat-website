@@ -17,6 +17,69 @@ const copy: Record<string, Pair> = {
   Solutions: ["Həllər", "Решения"],
   "How It Works": ["Necə işləyir", "Как это работает"],
   Pricing: ["Qiymətlər", "Тарифы"],
+  "HEAT SUBSCRIPTION": ["HEAT ABUNƏLİYİ", "ПОДПИСКА HEAT"],
+  "Clear pricing. Complete energy visibility.": [
+    "Aydın qiymət. Enerjiyə tam nəzarət.",
+    "Понятная цена. Полная картина энергопотребления.",
+  ],
+  "Everything required to monitor one facility, understand electricity costs and receive useful alerts is included in one service package.": [
+    "Bir obyektin monitorinqi, elektrik xərclərinin anlaşılması və faydalı bildirişlərin alınması üçün lazım olan hər şey vahid xidmət paketinə daxildir.",
+    "В один пакет включено всё необходимое для мониторинга одного объекта, анализа расходов на электричество и получения полезных уведомлений.",
+  ],
+  "COMPLETE PACKAGE": ["TAM PAKET", "ПОЛНЫЙ ПАКЕТ"],
+  "ONE-TIME INSTALLATION": ["BİRDƏFƏLİK QURAŞDIRILMA", "РАЗОВАЯ УСТАНОВКА"],
+  "MONTHLY SUBSCRIPTION": ["AYLIQ ABUNƏLİK", "ЕЖЕМЕСЯЧНАЯ ПОДПИСКА"],
+  "AZN / month": ["AZN / ay", "AZN / месяц"],
+  "Device setup, installation, connection and system activation.": [
+    "Cihazın hazırlanması, quraşdırılması, qoşulması və sistemin aktivləşdirilməsi.",
+    "Подготовка устройства, установка, подключение и активация системы.",
+  ],
+  "Continuous monitoring, analytics, reports and remote support.": [
+    "Davamlı monitorinq, analitika, hesabatlar və uzaqdan dəstək.",
+    "Непрерывный мониторинг, аналитика, отчёты и удалённая поддержка.",
+  ],
+  "Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription. Additional locations are quoted separately.": [
+    "Qiymət bir obyekt üçün nəzərdə tutulub. Abunəlik müddətində monitorinq avadanlığı HEAT-in mülkiyyətində qalır. Əlavə filiallar ayrıca hesablanır.",
+    "Цена указана для одного объекта. Во время подписки оборудование остаётся собственностью HEAT. Дополнительные филиалы рассчитываются отдельно.",
+  ],
+  "EVERYTHING INCLUDED": ["PAKETƏ DAXİLDİR", "ВСЁ ВКЛЮЧЕНО"],
+  "HEAT energy monitoring service": ["HEAT enerji monitorinqi xidməti", "Сервис энергомониторинга HEAT"],
+  "Smart monitoring device and professional installation": [
+    "Ağıllı monitorinq cihazı və peşəkar quraşdırılma",
+    "Умное устройство мониторинга и профессиональная установка",
+  ],
+  "Live energy dashboard and mobile access": [
+    "Canlı enerji dashboardu və mobil giriş",
+    "Энергопанель в реальном времени и мобильный доступ",
+  ],
+  "Total and phase-by-phase consumption in kWh and AZN": [
+    "Ümumi və fazalar üzrə sərfiyyatın kWh və AZN-lə göstərilməsi",
+    "Общее и пофазное потребление в кВт·ч и AZN",
+  ],
+  "Peak power and possible anomaly alerts": [
+    "Pik güc və mümkün anomaliya bildirişləri",
+    "Уведомления о пиковых нагрузках и возможных аномалиях",
+  ],
+  "After-hours consumption monitoring": [
+    "İş saatlarından sonrakı sərfiyyatın izlənməsi",
+    "Мониторинг потребления после рабочего времени",
+  ],
+  "Automatic Telegram reports and notifications": [
+    "Avtomatik Telegram hesabatları və bildirişləri",
+    "Автоматические отчёты и уведомления в Telegram",
+  ],
+  "Consumption history and cost comparisons": [
+    "İstehlak tarixçəsi və xərc müqayisələri",
+    "История потребления и сравнение расходов",
+  ],
+  "Monthly energy review and practical recommendations": [
+    "Aylıq enerji təhlili və praktik tövsiyələr",
+    "Ежемесячный анализ энергии и практические рекомендации",
+  ],
+  "Remote technical support and secure data storage": [
+    "Uzaqdan texniki dəstək və məlumatların təhlükəsiz saxlanması",
+    "Удалённая техническая поддержка и безопасное хранение данных",
+  ],
   About: ["Haqqımızda", "О нас"],
   Contact: ["Əlaqə", "Контакты"],
   "Request Demo": ["Demo sifariş edin", "Запросить демо"],

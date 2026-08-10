@@ -674,43 +674,16 @@ export function ReportSection() {
   );
 }
 
-const plans = [
-  [
-    "Monitoring",
-    [
-      "Real-Time Monitoring",
-      "Energy Dashboard",
-      "Daily Consumption",
-      "Cost Estimates",
-      "Weekly Reports",
-    ],
-    "Request Quote",
-  ],
-  [
-    "Analytics",
-    [
-      "Everything in Monitoring",
-      "Waste Detection",
-      "Peak Analysis",
-      "After-Hours Monitoring",
-      "Smart Alerts",
-      "Analytics Reports",
-      "Recommendations",
-    ],
-    "Request Demo",
-  ],
-  [
-    "Enterprise",
-    [
-      "Multiple Locations",
-      "Advanced Analytics",
-      "Central Management",
-      "Custom Reporting",
-      "Priority Support",
-      "Custom Integration",
-    ],
-    "Contact HEAT",
-  ],
+const subscriptionServices = [
+  "Smart monitoring device and professional installation",
+  "Live energy dashboard and mobile access",
+  "Total and phase-by-phase consumption in kWh and AZN",
+  "Peak power and possible anomaly alerts",
+  "After-hours consumption monitoring",
+  "Automatic Telegram reports and notifications",
+  "Consumption history and cost comparisons",
+  "Monthly energy review and practical recommendations",
+  "Remote technical support and secure data storage",
 ];
 export function PricingSection() {
   return (
@@ -719,41 +692,45 @@ export function PricingSection() {
         <Reveal>
           <SectionHeader
             align="center"
-            eyebrow="FLEXIBLE PLANS"
-            title="Built around your operation."
-            body="Every site is different. We’ll recommend the right monitoring and analytics setup for your business."
+            eyebrow="HEAT SUBSCRIPTION"
+            title="Clear pricing. Complete energy visibility."
+            body="Everything required to monitor one facility, understand electricity costs and receive useful alerts is included in one service package."
           />
         </Reveal>
-        <div className="pricing-grid">
-          {plans.map(([name, items, cta], i) => (
-            <Reveal key={String(name)} delay={i * 0.08}>
-              <Card className={i === 1 ? "recommended" : ""}>
-                {i === 1 && (
-                  <span className="recommended-label">RECOMMENDED</span>
-                )}
-                <h3>{String(name)}</h3>
-                <strong>Contact for Pricing</strong>
-                <p>
-                  A tailored HEAT setup for your facility and operational needs.
-                </p>
-                <div className="plan-list">
-                  {(items as string[]).map((x) => (
-                    <span key={x}>
-                      <Check size={15} />
-                      {x}
-                    </span>
-                  ))}
-                </div>
-                <Button
-                  href="#contact"
-                  kind={i === 1 ? "primary" : "secondary"}
-                >
-                  {String(cta)}
-                </Button>
-              </Card>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal className="subscription-card" delay={0.08}>
+          <Card className="recommended">
+            <div className="subscription-summary">
+              <span className="recommended-label">COMPLETE PACKAGE</span>
+              <div>
+                <small>ONE-TIME INSTALLATION</small>
+                <strong>220 <em>AZN</em></strong>
+                <p>Device setup, installation, connection and system activation.</p>
+              </div>
+              <i aria-hidden="true" />
+              <div>
+                <small>MONTHLY SUBSCRIPTION</small>
+                <strong>120 <em>AZN / month</em></strong>
+                <p>Continuous monitoring, analytics, reports and remote support.</p>
+              </div>
+              <Button href="#contact">Request a Demo</Button>
+              <p className="subscription-note">
+                Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription. Additional locations are quoted separately.
+              </p>
+            </div>
+            <div className="subscription-services">
+              <small>EVERYTHING INCLUDED</small>
+              <h3>HEAT energy monitoring service</h3>
+              <div className="plan-list">
+                {subscriptionServices.map((service) => (
+                  <span key={service}>
+                    <Check size={15} />
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </Reveal>
       </div>
     </section>
   );
