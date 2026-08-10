@@ -66,6 +66,14 @@ const worker = {
       );
     }
 
+    if (url.pathname === "/admin-manifest.webmanifest" || url.pathname === "/admin-sw.js") {
+      const assetResponse = await env.ASSETS.fetch(request);
+      const response = new Response(assetResponse.body, assetResponse);
+      response.headers.set("cache-control", "public, max-age=300");
+      response.headers.set("x-content-type-options", "nosniff");
+      return response;
+    }
+
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {
