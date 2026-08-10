@@ -14,21 +14,21 @@ type Customer = {
 
 const SCENARIOS = {
   normal: {
-    label: "Normal", power: "6.42 kW", energy: "80 kWh", projection: "2,410 kWh", formula: "90 + (80 × 29)", status: "Normal",
+    label: "Normal", power: "6.42 kW", energy: "80 kWh", projection: "265.10 AZN", formula: "2,410 kWh × 0.11 AZN", status: "Normal",
     phases: [58, 44, 36], phaseValues: ["2.71 kW", "2.04 kW", "1.67 kW"],
     insight: "İstehlak normaldır", detail: "Soyuducu və çay aparatının yükü gözlənilən iş rejimindədir. Hazırda müdaxilə tələb olunmur.",
     telegramTitle: "✅ Sistem normaldır", telegram: "Hazırkı güc: 6.42 kW\nBugünkü enerji: 84.7 kWh\nProblem aşkarlanmayıb.", tone: "ok",
     paths: ["M30 154 L80 158 L130 154 L180 143 L230 126 L280 100 L330 89 L380 99 L430 82 L480 69 L530 78 L580 64", "M30 165 L80 167 L130 160 L180 156 L230 141 L280 125 L330 114 L380 116 L430 106 L480 93 L530 98 L580 85", "M30 171 L80 169 L130 167 L180 160 L230 150 L280 136 L330 130 L380 123 L430 119 L480 107 L530 111 L580 101"],
   },
   peak: {
-    label: "Pik yük", power: "11.86 kW", energy: "110 kWh", projection: "3,280 kWh", formula: "90 + (110 × 29)", status: "Diqqət",
+    label: "Pik yük", power: "11.86 kW", energy: "110 kWh", projection: "360.80 AZN", formula: "3,280 kWh × 0.11 AZN", status: "Diqqət",
     phases: [92, 71, 58], phaseValues: ["5.32 kW", "3.81 kW", "2.73 kW"],
     insight: "Pik yük müəyyən edildi", detail: "Çay aparatı, soba və kondisioner eyni vaxtda işləyir. Sobanın işini 15 dəqiqə gecikdirmək pik yükü azalda bilər.",
     telegramTitle: "⚠️ Pik yük xəbərdarlığı", telegram: "Hazırkı güc: 11.86 kW\nFaza A: 5.32 kW\nTövsiyə: sobanı 15 dəqiqə gecikdirin.", tone: "warn",
     paths: ["M30 154 L80 158 L130 154 L180 143 L230 126 L280 100 L330 86 L380 39 L430 27 L480 34 L530 56 L580 62", "M30 165 L80 167 L130 160 L180 156 L230 141 L280 125 L330 114 L380 82 L430 66 L480 71 L530 88 L580 85", "M30 171 L80 169 L130 167 L180 160 L230 150 L280 136 L330 130 L380 110 L430 99 L480 102 L530 109 L580 101"],
   },
   anomaly: {
-    label: "Anomaliya", power: "9.34 kW", energy: "130 kWh", projection: "3,860 kWh", formula: "90 + (130 × 29)", status: "Anomaliya",
+    label: "Anomaliya", power: "9.34 kW", energy: "130 kWh", projection: "424.60 AZN", formula: "3,860 kWh × 0.11 AZN", status: "Anomaliya",
     phases: [98, 39, 31], phaseValues: ["6.10 kW", "1.81 kW", "1.43 kW"],
     insight: "Faza A-da qeyri-adi yük", detail: "Bağlanış saatından sonra Faza A-da 6.10 kW davamlı istehlak görünür. Çay aparatı və sobanın söndürüldüyünü yoxlayın.",
     telegramTitle: "🚨 Anomaliya aşkarlandı", telegram: "Saat: 01:42\nFaza A: 6.10 kW\nGecə bazasından 4.8× yüksəkdir.\nObyekti yoxlayın.", tone: "danger",
