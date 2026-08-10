@@ -4,12 +4,13 @@ import { customerSecrets } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import { DEMO_CUSTOMER, demoDailyMetrics } from "@/lib/demo-customer";
 import { decryptProvisioningInput, requestIsSameOrigin } from "@/lib/provisioning";
+import { demoTelegramAlert } from "@/lib/telegram";
 
 export async function POST(request: Request) {
   if (!await getAdminUser()) return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
   if (!requestIsSameOrigin(request)) return Response.json({ error: "Etibarsız sorğu mənbəyi." }, { status: 403 });
   try {
-    const { customerId } = await request.json() as { customerId?: string };
+    const { customerId, scenario = "report" } = await request.json() as { customerId?: string; scenario?: "report" | "peak" | "anomaly" };
     if (!customerId) return Response.json({ error: "Müştəri seçilməyib." }, { status: 400 });
     const [vault] = await getDb().select().from(customerSecrets).where(eq(customerSecrets.customerId, customerId)).limit(1);
     if (!vault) return Response.json({ error: "Telegram məlumatları saxlanmayıb." }, { status: 404 });
@@ -19,7 +20,9 @@ export async function POST(request: Request) {
     }
     const metrics = demoDailyMetrics();
     const text = customerId === DEMO_CUSTOMER.id
-      ? `📊 HEAT — Günlük enerji hesabatı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nTarix: ${metrics.dateKey}\n\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🔋 Son tamamlanmış gün: ${metrics.latestEnergyKwh} kWh\n💰 Aylıq proqnoz: ${metrics.projectedCostAzn} AZN (${metrics.projectedKwh} kWh)\n\n✅ Status: Normal\n💡 Tövsiyə: İstehlak normaldır. Hazırda müdaxilə tələb olunmur.`
+      ? scenario === "peak" || scenario === "anomaly"
+        ? demoTelegramAlert(scenario, values)
+        : `📊 HEAT — Günlük enerji hesabatı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nTarix: ${metrics.dateKey}\n\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🔋 Son tamamlanmış gün: ${metrics.latestEnergyKwh} kWh\n💰 Aylıq proqnoz: ${metrics.projectedCostAzn} AZN (${metrics.projectedKwh} kWh)\n\n✅ Status: Normal\n💡 Tövsiyə: İstehlak normaldır. Hazırda müdaxilə tələb olunmur.`
       : `✅ HEAT test bildirişi\n\n${values.customerName}\n${values.siteName}\n\nTelegram bağlantısı uğurla işləyir.`;
     const telegram = await fetch(`https://api.telegram.org/bot${values.telegramBotToken}/sendMessage`, {
       method: "POST",

@@ -67,3 +67,17 @@ export function demoTelegramReply(command: string, values: ProvisioningInput): s
   }
   return `Bu komanda tanınmadı.\n\n${help}`;
 }
+
+export function demoTelegramAlert(kind: "peak" | "anomaly", values: ProvisioningInput): string {
+  const metrics = demoOperationalMetrics();
+  if (kind === "peak") {
+    const peak = Number(metrics.peakPowerKw);
+    const phaseA = (peak * 0.45).toFixed(2);
+    const phaseB = (peak * 0.32).toFixed(2);
+    const phaseC = (peak * 0.23).toFixed(2);
+    return `⚠️ HEAT — Pik güc xəbərdarlığı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nSaat: ${metrics.peakTime}\n\n🔺 Ümumi güc: ${peak.toFixed(2)} kW\n• Faza A: ${phaseA} kW\n• Faza B: ${phaseB} kW\n• Faza C: ${phaseC} kW\n📏 Normal hədd: 9.50 kW\n📈 Həddən artıq yük: ${(peak - 9.5).toFixed(2)} kW\n\nEhtimal olunan səbəb:\nÇay aparatı, soba və kondisioner eyni vaxtda işləyir.\n\n💡 Tövsiyə:\nSobanın və ya kondisionerin işini 15 dəqiqə gecikdirin. Güc 10 dəqiqə ərzində düşməzsə, elektrik panelini yoxlayın.\n\n🟠 Status: Diqqət tələb olunur`;
+  }
+  const anomalyPower = 6.1;
+  const normalNightPower = 1.27;
+  return `🚨 HEAT — Anomaliya aşkarlandı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nAşkarlanma vaxtı: 01:42\n\n⚡ Faza A: ${anomalyPower.toFixed(2)} kW\n📉 Normal gecə yükü: ${normalNightPower.toFixed(2)} kW\n📈 Fərq: ${(anomalyPower / normalNightPower).toFixed(1)} dəfə yüksək\n⏱ Davam etmə müddəti: 18 dəqiqə\n💸 Təxmini əlavə sərfiyyat: 1.83 kWh\n\nEhtimal olunan səbəb:\nBağlanışdan sonra çay aparatı, soba və ya başqa yüksək güclü cihaz açıq qalıb.\n\n🛑 İndi edin:\n1. Obyektdəki məsul şəxslə əlaqə saxlayın.\n2. Çay aparatı və sobanın söndürüldüyünü yoxlayın.\n3. Problem görünmürsə, Faza A xəttini elektrikçiyə yoxlatdırın.\n\n🔴 Status: Təcili yoxlama lazımdır`;
+}
