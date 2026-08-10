@@ -61,7 +61,7 @@ export function CustomerEditForm({ customerId }: { customerId: string }) {
       const response = await fetch("/api/provisioning/telegram-test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ customerId }) });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "Test bildirişi göndərilmədi.");
-      setTelegramResult("Müştəri hesabatı Telegram-a göndərildi.");
+      setTelegramResult("Avtomatik report nümunəsi Telegram-a göndərildi.");
     } catch (problem) { setError(problem instanceof Error ? problem.message : "Test bildirişi göndərilmədi."); }
     finally { setTestingTelegram(false); }
   };

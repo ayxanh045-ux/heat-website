@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const text = customerId === DEMO_CUSTOMER.id
       ? scenario === "peak" || scenario === "anomaly"
         ? demoTelegramAlert(scenario, values)
-        : demoTelegramReply("/report", values)
+        : demoTelegramReply("/report", values, { automatic: true })
       : `✅ HEAT test bildirişi\n\n${values.customerName}\n${values.siteName}\n\nTelegram bağlantısı uğurla işləyir.`;
     const telegram = await fetch(`https://api.telegram.org/bot${values.telegramBotToken}/sendMessage`, {
       method: "POST",
