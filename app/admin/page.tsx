@@ -7,6 +7,7 @@ import { CustomerSecretsButton } from "@/components/admin/customer-secrets-butto
 import { getDb } from "@/db";
 import { customers } from "@/db/schema";
 import { isAdmin } from "@/lib/admin-auth";
+import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +21,12 @@ async function CustomerList() {
   try { rows = await getDb().select().from(customers).orderBy(desc(customers.createdAt)).limit(50); }
   catch { databaseReady = false; }
   return <div className="customer-list-card">
-    <div className="customer-list-head"><div><h2>Müştəri sistemləri</h2><p>Son 50 deployment və cari vəziyyət.</p></div><a href="/admin"><RefreshCw size={15} /> Yenilə</a></div>
-    {!databaseReady ? <div className="admin-empty"><Server size={26} /><b>Database migration gözlənilir</b><span>İlk deploy zamanı D1 schema avtomatik tətbiq olunacaq.</span></div> : rows.length === 0 ? <div className="admin-empty"><Users size={26} /><b>Hələ müştəri yoxdur</b><span>İlk müştərini aşağıdakı formadan yaradın.</span></div> : <div className="customer-table-wrap"><table><thead><tr><th>Müştəri</th><th>Cihaz</th><th>Rejim</th><th>Status</th><th>Giriş</th><th>Seyf</th></tr></thead><tbody>{rows.map((customer) => <tr key={customer.id}><td><Link className="customer-name-link" href={`/admin/customers/${customer.id}`}><b>{customer.customerName}</b><span>{customer.siteName}</span></Link></td><td><code>{customer.deviceId}</code><span>{customer.deviceName}</span></td><td>{customer.collectorMode}</td><td><i className={`status-pill ${customer.status}`}>{STATUS[customer.status] ?? customer.status}</i></td><td>{customer.status === "active" && customer.grafanaPort ? <a className="grafana-link" href={`http://localhost:${customer.grafanaPort}`}><ExternalLink size={14} /> Grafana</a> : <span>—</span>}</td><td><CustomerSecretsButton customerId={customer.id} customerName={customer.customerName} /></td></tr>)}</tbody></table></div>}
+    <div className="customer-list-head"><div><h2>Müştəri sistemləri</h2><p>Demo hesabı və son 50 real deployment.</p></div><a href="/admin"><RefreshCw size={15} /> Yenilə</a></div>
+    {!databaseReady && <div className="admin-empty"><Server size={26} /><b>Real müştəri bazası müvəqqəti əlçatan deyil</b><span>Demo hesabı işləməyə davam edir.</span></div>}
+    <div className="customer-table-wrap"><table><thead><tr><th>Müştəri</th><th>Cihaz</th><th>Rejim</th><th>Status</th><th>Giriş</th><th>Seyf</th></tr></thead><tbody>
+      <tr className="demo-customer-row"><td><Link className="customer-name-link" href={`/admin/customers/${DEMO_CUSTOMER.id}`}><b>{DEMO_CUSTOMER.customerName}</b><span>{DEMO_CUSTOMER.siteName}</span></Link></td><td><code>{DEMO_CUSTOMER.deviceId}</code><span>{DEMO_CUSTOMER.deviceName}</span></td><td>Gündəlik demo</td><td><i className="status-pill demo">Demo aktivdir</i></td><td><Link className="grafana-link" href={`/admin/customers/${DEMO_CUSTOMER.id}`}><ExternalLink size={14} /> Dashboard</Link></td><td><span>Gizli məlumat yoxdur</span></td></tr>
+      {rows.map((customer) => <tr key={customer.id}><td><Link className="customer-name-link" href={`/admin/customers/${customer.id}`}><b>{customer.customerName}</b><span>{customer.siteName}</span></Link></td><td><code>{customer.deviceId}</code><span>{customer.deviceName}</span></td><td>{customer.collectorMode}</td><td><i className={`status-pill ${customer.status}`}>{STATUS[customer.status] ?? customer.status}</i></td><td>{customer.status === "active" && customer.grafanaPort ? <a className="grafana-link" href={`http://localhost:${customer.grafanaPort}`}><ExternalLink size={14} /> Grafana</a> : <span>—</span>}</td><td><CustomerSecretsButton customerId={customer.id} customerName={customer.customerName} /></td></tr>)}
+    </tbody></table></div>
   </div>;
 }
 

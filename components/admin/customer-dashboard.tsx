@@ -36,14 +36,60 @@ const SCENARIOS = {
   },
 } as const;
 
-export function CustomerDashboard({ customer }: { customer: Customer }) {
+type ScenarioKey = keyof typeof SCENARIOS;
+
+function seededRandom(seedText: string) {
+  let seed = 2166136261;
+  for (const char of seedText) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
+  return () => {
+    seed += 0x6d2b79f5;
+    let value = seed;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function dailyDemoScenarios(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const completedDays = Math.max(1, day - 1);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const random = seededRandom(dateKey);
+  const totals = Array.from({ length: completedDays }, (_, index) => {
+    const weekday = new Date(Date.UTC(year, month - 1, index + 1)).getUTCDay();
+    const busyDay = weekday === 5 || weekday === 6 ? 10 : weekday === 0 ? -7 : 0;
+    return 78 + busyDay + (random() - 0.5) * 16;
+  });
+  const latestEnergy = totals.at(-1) ?? 80;
+  const actualEnergy = totals.reduce((sum, value) => sum + value, 0);
+  const remainingDays = daysInMonth - completedDays;
+  const baseProjection = actualEnergy + latestEnergy * remainingDays;
+  const basePower = 5.7 + random() * 1.9;
+  const lastDay = new Intl.DateTimeFormat("az-AZ", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, completedDays)));
+  const makeScenario = (key: ScenarioKey, factor: number) => {
+    const source = SCENARIOS[key];
+    const power = basePower * factor;
+    const energy = latestEnergy * factor;
+    const projectedKwh = baseProjection * factor;
+    const cost = projectedKwh * 0.11;
+    const shares = key === "anomaly" ? [0.66, 0.19, 0.15] : key === "peak" ? [0.45, 0.32, 0.23] : [0.42, 0.32, 0.26];
+    const phaseValues = shares.map(share => `${(power * share).toFixed(2)} kW`);
+    const telegramTitle = key === "normal" ? "✅ Sistem normaldır" : key === "peak" ? "⚠️ Pik yük xəbərdarlığı" : "🚨 Anomaliya aşkarlandı";
+    const telegram = `Tarix: ${lastDay}\nHazırkı güc: ${power.toFixed(2)} kW\nSon gün: ${energy.toFixed(1)} kWh\nAylıq proqnoz: ${cost.toFixed(2)} AZN`;
+    return { ...source, power: `${power.toFixed(2)} kW`, energy: `${energy.toFixed(1)} kWh`, projection: `${cost.toFixed(2)} AZN`, formula: `${Math.round(projectedKwh).toLocaleString("en-US")} kWh × 0.11 AZN`, phaseValues, telegramTitle, telegram };
+  };
+  return { normal: makeScenario("normal", 1), peak: makeScenario("peak", 1.55), anomaly: makeScenario("anomaly", 1.32) };
+}
+
+export function CustomerDashboard({ customer, dailyDemoDate }: { customer: Customer; dailyDemoDate?: string }) {
   const [scenario, setScenario] = useState<keyof typeof SCENARIOS>("normal");
-  const current = SCENARIOS[scenario];
+  const scenarios = dailyDemoDate ? dailyDemoScenarios(dailyDemoDate) : SCENARIOS;
+  const current = scenarios[scenario];
   return <div className={`customer-dashboard tone-${current.tone}`}>
-    <div className="customer-demo-note"><Sparkles size={15} /><span>Demo görünüşü</span><p>Real enerji məlumatları sistem aktiv olduqda Grafana-da görünəcək.</p></div>
-    <div className="customer-dash-head"><div><span className="admin-kicker">ENERGY MONITORING</span><h1>{customer.customerName}</h1><p>{customer.siteName} · {customer.deviceName} · <code>{customer.deviceId}</code></p></div><div className="dash-scenarios">{Object.entries(SCENARIOS).map(([key, value]) => <button key={key} className={scenario === key ? "active" : ""} type="button" onClick={() => setScenario(key as keyof typeof SCENARIOS)}>{value.label}</button>)}</div></div>
+    <div className="customer-demo-note"><Sparkles size={15} /><span>{dailyDemoDate ? "Gündəlik avtomatik demo" : "Demo görünüşü"}</span><p>{dailyDemoDate ? `${dailyDemoDate} tarixi üçün yaradılmış realist nümunə məlumatlarıdır. Sabah avtomatik yenilənəcək.` : "Real enerji məlumatları sistem aktiv olduqda Grafana-da görünəcək."}</p></div>
+    <div className="customer-dash-head"><div><span className="admin-kicker">ENERGY MONITORING</span><h1>{customer.customerName}</h1><p>{customer.siteName} · {customer.deviceName} · <code>{customer.deviceId}</code></p></div><div className="dash-scenarios">{Object.entries(scenarios).map(([key, value]) => <button key={key} className={scenario === key ? "active" : ""} type="button" onClick={() => setScenario(key as keyof typeof SCENARIOS)}>{value.label}</button>)}</div></div>
     <div className="customer-pipeline"><span><i />Shelly qoşulub</span><span><i />InfluxDB yazır</span><span><i />Grafana hazırdır</span><span><i />Telegram aktivdir</span></div>
-    <div className="customer-metrics"><div><span>Hazırkı güc</span><strong>{current.power}</strong><small>Canlı ölçü</small></div><div><span>Son tamamlanmış gün</span><strong>{current.energy}</strong><small>Ayın 2-ci günü</small></div><div><span>Aylıq proqnoz</span><strong>{current.projection}</strong><small>{current.formula}</small></div><div><span>Sistem statusu</span><strong>{current.status}</strong><small>{current.tone === "ok" ? "Problem yoxdur" : "Yoxlama lazımdır"}</small></div></div>
+    <div className="customer-metrics"><div><span>Hazırkı güc</span><strong>{current.power}</strong><small>Canlı ölçü</small></div><div><span>Son tamamlanmış gün</span><strong>{current.energy}</strong><small>{dailyDemoDate ? "Dünənin göstəricisi" : "Ayın 2-ci günü"}</small></div><div><span>Aylıq proqnoz</span><strong>{current.projection}</strong><small>{current.formula}</small></div><div><span>Sistem statusu</span><strong>{current.status}</strong><small>{current.tone === "ok" ? "Problem yoxdur" : "Yoxlama lazımdır"}</small></div></div>
     <div className="customer-dash-grid"><section className="customer-chart"><header><div><b>24 saatlıq güc</b><small>A, B və C fazaları</small></div><div><i />A <i />B <i />C</div></header><svg viewBox="0 0 610 200" role="img" aria-label="Üç fazanın 24 saatlıq güc qrafiki"><line x1="30" y1="25" x2="590" y2="25"/><line x1="30" y1="80" x2="590" y2="80"/><line x1="30" y1="135" x2="590" y2="135"/><line x1="30" y1="180" x2="590" y2="180"/><path d={current.paths[0]}/><path d={current.paths[1]}/><path d={current.paths[2]}/><text x="30" y="197">00:00</text><text x="170" y="197">06:00</text><text x="310" y="197">12:00</text><text x="450" y="197">18:00</text><text x="555" y="197">24:00</text></svg></section><section className="customer-phases"><h2>Fazalar</h2>{["A", "B", "C"].map((phase, index) => <div className="customer-phase" key={phase}><div><span>Faza {phase}</span><b>{current.phaseValues[index]}</b></div><i><b style={{ width: `${current.phases[index]}%` }} /></i></div>)}</section></div>
     <div className="customer-dash-lower"><section className="customer-insight"><span>{current.tone === "ok" ? <CheckCircle2 /> : <AlertTriangle />}</span><div><small>HEAT ANALYTICS</small><h2>{current.insight}</h2><p>{current.detail}</p></div></section><section className="customer-telegram"><header><MessageCircle size={16} /><b>Telegram · HEAT Bot</b><i>online</i></header><div><b>{current.telegramTitle}</b><p>{current.telegram}</p><small>indi</small></div></section></div>
     {customer.status === "active" && customer.grafanaPort ? <a className="open-real-grafana" href={`http://localhost:${customer.grafanaPort}`}><Zap size={16} /> Real Grafana dashboardunu aç <ExternalLink size={14} /></a> : <div className="grafana-wait"><Zap size={16} /> Real Grafana keçidi qurulum tamamlandıqdan sonra aktiv olacaq.</div>}
