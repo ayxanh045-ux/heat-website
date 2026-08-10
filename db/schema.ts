@@ -69,3 +69,14 @@ export const customerSessions = sqliteTable(
   },
   (table) => [uniqueIndex("idx_customer_sessions_hash_unique").on(table.sessionHash)],
 );
+
+export const telegramReportDeliveries = sqliteTable(
+  "telegram_report_deliveries",
+  {
+    id: text("id").primaryKey(),
+    customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+    scheduledFor: text("scheduled_for").notNull(),
+    deliveredAt: text("delivered_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [uniqueIndex("idx_telegram_report_delivery_unique").on(table.customerId, table.scheduledFor)],
+);
