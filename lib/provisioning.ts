@@ -20,6 +20,7 @@ export type ProvisioningInput = {
   influxAdminToken: string;
   grafanaAdminUsername: string;
   grafanaAdminPassword: string;
+  electricityTariffAznPerKwh: number;
   telegramEnabled: boolean;
   telegramBotToken?: string;
   telegramAllowedChatIds?: string;
@@ -62,6 +63,7 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
   const influxAdminPassword = cleanString(input.influxAdminPassword, 300);
   const influxAdminToken = cleanString(input.influxAdminToken, 500);
   const grafanaAdminPassword = cleanString(input.grafanaAdminPassword, 300);
+  const electricityTariffAznPerKwh = Number(input.electricityTariffAznPerKwh ?? 0.11);
   const telegramEnabled = input.telegramEnabled === true;
   const telegramAllowedChatIds = cleanString(input.telegramAllowedChatIds, 300);
   const telegramDefaultChatId = cleanString(input.telegramDefaultChatId, 50);
@@ -73,6 +75,7 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
   if (!new Set(["polling", "hybrid"]).has(collectorMode)) throw new Error("Collector rejimi düzgün deyil.");
   if (influxAdminPassword.length < 12 || grafanaAdminPassword.length < 12) throw new Error("InfluxDB və Grafana parolları ən azı 12 simvol olmalıdır.");
   if (influxAdminToken.length < 16) throw new Error("InfluxDB init token ən azı 16 simvol olmalıdır.");
+  if (!Number.isFinite(electricityTariffAznPerKwh) || electricityTariffAznPerKwh <= 0 || electricityTariffAznPerKwh > 10) throw new Error("Elektrik tarifi 0–10 AZN/kWh aralığında olmalıdır.");
   if (telegramEnabled && (!telegramAllowedChatIds || !CHAT_IDS.test(telegramAllowedChatIds))) throw new Error("Telegram aktivdirsə düzgün chat ID allowlist tələb olunur.");
   if (telegramDefaultChatId && !telegramAllowedChatIds.split(",").map((x) => x.trim()).includes(telegramDefaultChatId)) throw new Error("Default Telegram chat ID allowlist daxilində olmalıdır.");
   if (!Number.isInteger(reportCount) || reportCount < 1 || reportCount > 6) throw new Error("Gündəlik report sayı 1–6 aralığında olmalıdır.");
@@ -89,7 +92,7 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
     influxAdminUsername: cleanString(input.influxAdminUsername, 100) || "heat-admin",
     influxAdminPassword, influxAdminToken,
     grafanaAdminUsername: cleanString(input.grafanaAdminUsername, 100) || "admin",
-    grafanaAdminPassword, telegramEnabled,
+    grafanaAdminPassword, electricityTariffAznPerKwh, telegramEnabled,
     telegramReportCount: reportCount,
     telegramReportTimes: reportTimes.join(","),
     phaseALabel: cleanString(input.phaseALabel, 60) || "Faza A",

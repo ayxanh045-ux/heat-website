@@ -26,6 +26,7 @@ export const DEMO_EDIT_VALUES = {
   influxAdminToken: "demo-influx-token-not-real",
   grafanaAdminUsername: "admin",
   grafanaAdminPassword: "HeatDotdc4539#",
+  electricityTariffAznPerKwh: 0.11,
   telegramEnabled: false,
   telegramReportCount: 1,
   telegramReportTimes: "09:00",

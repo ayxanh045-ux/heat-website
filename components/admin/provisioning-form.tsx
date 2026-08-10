@@ -9,6 +9,7 @@ type Fields = {
   shellyServerUri: string; shellyCloudAuthKey: string; shellyOAuthAccessToken: string; shellyUserApiUrl: string;
   influxOrg: string; influxBucket: string; influxAdminUsername: string; influxAdminPassword: string; influxAdminToken: string;
   grafanaAdminUsername: string; grafanaAdminPassword: string; telegramEnabled: boolean;
+  electricityTariffAznPerKwh: string;
   telegramBotToken: string; telegramAllowedChatIds: string; telegramDefaultChatId: string;
   telegramReportCount: number; telegramReportTimes: string;
   phaseALabel: string; phaseBLabel: string; phaseCLabel: string;
@@ -22,6 +23,7 @@ const INITIAL: Fields = {
   shellyServerUri: "", shellyCloudAuthKey: "", shellyOAuthAccessToken: "", shellyUserApiUrl: "",
   influxOrg: "HEAT", influxBucket: "energy", influxAdminUsername: "heat-admin", influxAdminPassword: "", influxAdminToken: "",
   grafanaAdminUsername: "admin", grafanaAdminPassword: "", telegramEnabled: false,
+  electricityTariffAznPerKwh: "0.11",
   telegramBotToken: "", telegramAllowedChatIds: "", telegramDefaultChatId: "",
   telegramReportCount: 1, telegramReportTimes: "09:00",
   phaseALabel: "Faza A", phaseBLabel: "Faza B", phaseCLabel: "Faza C",
@@ -61,7 +63,7 @@ export function ProvisioningForm() {
   const [error, setError] = useState("");
   const [created, setCreated] = useState<{ jobId: string } | null>(null);
   const progress = useMemo(() => {
-    const required = [fields.customerName, fields.customerSlug, fields.siteName, fields.deviceId, fields.shellyServerUri, fields.shellyCloudAuthKey, fields.influxAdminPassword, fields.influxAdminToken, fields.grafanaAdminPassword];
+    const required = [fields.customerName, fields.customerSlug, fields.siteName, fields.deviceId, fields.shellyServerUri, fields.shellyCloudAuthKey, fields.influxAdminPassword, fields.influxAdminToken, fields.grafanaAdminPassword, fields.electricityTariffAznPerKwh];
     return Math.round((required.filter(Boolean).length / required.length) * 100);
   }, [fields]);
   const set = (name: keyof Fields, value: string | boolean | number) => setFields((current) => ({ ...current, [name]: value }));
@@ -121,6 +123,7 @@ export function ProvisioningForm() {
       <Field label="Influx init admin token" name="influxAdminToken" value={fields.influxAdminToken} onChange={set} type="password" />
       <Field label="Grafana admin username" name="grafanaAdminUsername" value={fields.grafanaAdminUsername} onChange={set} />
       <Field label="Grafana admin password" name="grafanaAdminPassword" value={fields.grafanaAdminPassword} onChange={set} type="password" />
+      <Field label="Elektrik tarifi — AZN/kWh" name="electricityTariffAznPerKwh" value={fields.electricityTariffAznPerKwh} onChange={set} placeholder="0.11" sourceHelp="Müştərinin elektrik hesab-fakturasında və ya təchizatçı müqaviləsində göstərilən 1 kWh tarifini daxil edin." />
     </div><div className="auto-token-note"><ShieldCheck size={16} /><span>Write, analytics-read və Grafana-read tokenləri quraşdırma zamanı avtomatik yaradılır.</span></div></section>
     <section><div className="admin-section-title"><span>04</span><div><h2>Telegram</h2><p>İstəyə bağlı bildiriş və hesabat kanalı.</p></div><label className="admin-switch"><input type="checkbox" checked={fields.telegramEnabled} onChange={(e) => set("telegramEnabled", e.target.checked)} /><i /><span>Aktiv et</span></label></div>{fields.telegramEnabled && <div className="admin-form-grid">
       <Field label="Bot token" name="telegramBotToken" value={fields.telegramBotToken} onChange={set} type="password" sourceHelp="Telegram-da @BotFather açın, /newbot əmri ilə bot yaradın və verilən tokeni kopyalayın." />
