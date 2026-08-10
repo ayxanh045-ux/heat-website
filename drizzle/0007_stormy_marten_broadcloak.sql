@@ -1,0 +1,1 @@
+ALTER TABLE `admin_devices` ADD `setup_token_hash` text;

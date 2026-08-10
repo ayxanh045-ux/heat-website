@@ -20,19 +20,25 @@ export async function POST(request: Request) {
   const admin = await getAllowlistedAdminUser();
   if (!admin) return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
 
-  const existing = await getDb().select({ id: adminDevices.id }).from(adminDevices).limit(1);
-  if (existing.length) return Response.json({ error: "Admin cihazı artıq qeydiyyatdan keçib." }, { status: 409 });
-
   const body = await request.json().catch(() => ({})) as { setupToken?: string };
   const configured = String((env as unknown as Record<string, unknown>).ADMIN_DEVICE_SETUP_TOKEN ?? "");
-  if (!await sameSecret(String(body.setupToken ?? "").trim(), configured)) {
+  const supplied = String(body.setupToken ?? "").trim();
+  if (!await sameSecret(supplied, configured)) {
     return Response.json({ error: "Quraşdırma kodu düzgün deyil." }, { status: 401 });
   }
 
+  const setupTokenHash = await sha256(supplied);
+  const existing = await getDb().select({ setupTokenHash: adminDevices.setupTokenHash }).from(adminDevices).limit(1);
+  if (existing[0]?.setupTokenHash === setupTokenHash) {
+    return Response.json({ error: "Bu birdəfəlik kod artıq istifadə olunub." }, { status: 409 });
+  }
+
   const deviceToken = randomToken(32);
+  await getDb().delete(adminDevices);
   await getDb().insert(adminDevices).values({
     id: "primary-admin-device",
     tokenHash: await sha256(deviceToken),
+    setupTokenHash,
     enrolledByEmail: admin.email.toLowerCase(),
   });
   return Response.json({ ok: true }, {

@@ -84,6 +84,7 @@ export const telegramReportDeliveries = sqliteTable(
 export const adminDevices = sqliteTable("admin_devices", {
   id: text("id").primaryKey(),
   tokenHash: text("token_hash").notNull().unique(),
+  setupTokenHash: text("setup_token_hash"),
   enrolledByEmail: text("enrolled_by_email").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   lastSeenAt: text("last_seen_at").notNull().default(sql`CURRENT_TIMESTAMP`),
