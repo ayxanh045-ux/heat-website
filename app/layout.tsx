@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://heatenergyanalytics.com"),
   title: "HEAT | Ağıllı enerji monitorinqi və analitikası",
   description:
     "HEAT bizneslərə elektrik istehlakını real vaxtda izləməyə, enerji israfını aşkarlamağa və enerji xərclərini anlamağa kömək edir.",
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
     "HEAT Energy Analytics",
   ],
   openGraph: {
+    url: "https://heatenergyanalytics.com/",
     title: "HEAT | Ağıllı enerji monitorinqi və analitikası",
     description:
       "Enerjini görün. İsrafı dayandırın. Bizneslər üçün real vaxt enerji analitikası.",
@@ -47,6 +49,7 @@ export const metadata: Metadata = {
       },
     ],
   },
+  alternates: { canonical: "https://heatenergyanalytics.com/" },
   twitter: {
     card: "summary_large_image",
     title: "HEAT | Ağıllı enerji monitorinqi və analitikası",

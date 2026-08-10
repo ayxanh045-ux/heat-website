@@ -907,7 +907,7 @@ export function ContactSection() {
                 <input
                   type="hidden"
                   name="_next"
-                  value="https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/?submitted=1#contact"
+                  value="https://heatenergyanalytics.com/?submitted=1#contact"
                 />
                 <input
                   type="hidden"
@@ -918,7 +918,7 @@ export function ContactSection() {
                 <input
                   type="hidden"
                   name="_url"
-                  value="https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/"
+                  value="https://heatenergyanalytics.com/"
                 />
                 <input type="text" name="_honey" className="honey-field" />
                 <div className="form-grid">

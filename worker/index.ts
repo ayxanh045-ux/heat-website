@@ -29,12 +29,16 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.hostname === "heat-energy-analytics-az.hasanov-ayxan.chatgpt.site" || url.hostname === "www.heatenergyanalytics.com") {
+      return Response.redirect(`https://heatenergyanalytics.com${url.pathname}${url.search}`, 308);
+    }
+
     if (url.pathname === "/robots.txt") {
       return new Response(
         [
           "User-agent: *",
           "Allow: /",
-          "Sitemap: https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/sitemap.xml",
+          "Sitemap: https://heatenergyanalytics.com/sitemap.xml",
           "",
         ].join("\n"),
         { headers: { "content-type": "text/plain; charset=utf-8" } },
@@ -47,7 +51,7 @@ const worker = {
           '<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
           "  <url>",
-          "    <loc>https://heat-energy-analytics-az.hasanov-ayxan.chatgpt.site/</loc>",
+          "    <loc>https://heatenergyanalytics.com/</loc>",
           "    <lastmod>2026-08-09</lastmod>",
           "    <changefreq>weekly</changefreq>",
           "    <priority>1.0</priority>",
