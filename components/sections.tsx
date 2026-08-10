@@ -702,19 +702,19 @@ export function PricingSection() {
             <div className="subscription-summary">
               <span className="recommended-label">COMPLETE PACKAGE</span>
               <div>
-                <small>ONE-TIME INSTALLATION</small>
+                <small>FIRST MONTH — TOTAL PAYMENT</small>
                 <strong>220 <em>AZN</em></strong>
-                <p>Device setup, installation, connection and system activation.</p>
+                <p>Installation, system activation and the first month of service are included.</p>
               </div>
               <i aria-hidden="true" />
               <div>
-                <small>MONTHLY SUBSCRIPTION</small>
+                <small>FROM THE SECOND MONTH</small>
                 <strong>120 <em>AZN / month</em></strong>
                 <p>Continuous monitoring, analytics, reports and remote support.</p>
               </div>
               <Button href="#contact">Request a Demo</Button>
               <p className="subscription-note">
-                Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription. Additional locations are quoted separately.
+                You do not pay 220 + 120 AZN in the first month. Your first-month total is 220 AZN; every following month is 120 AZN. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.
               </p>
             </div>
             <div className="subscription-services">

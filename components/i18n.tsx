@@ -27,20 +27,20 @@ const copy: Record<string, Pair> = {
     "В один пакет включено всё необходимое для мониторинга одного объекта, анализа расходов на электричество и получения полезных уведомлений.",
   ],
   "COMPLETE PACKAGE": ["TAM PAKET", "ПОЛНЫЙ ПАКЕТ"],
-  "ONE-TIME INSTALLATION": ["BİRDƏFƏLİK QURAŞDIRILMA", "РАЗОВАЯ УСТАНОВКА"],
-  "MONTHLY SUBSCRIPTION": ["AYLIQ ABUNƏLİK", "ЕЖЕМЕСЯЧНАЯ ПОДПИСКА"],
+  "FIRST MONTH — TOTAL PAYMENT": ["İLK AY — ÜMUMİ ÖDƏNİŞ", "ПЕРВЫЙ МЕСЯЦ — ОБЩАЯ ОПЛАТА"],
+  "FROM THE SECOND MONTH": ["İKİNCİ AYDAN ETİBARƏN", "СО ВТОРОГО МЕСЯЦА"],
   "AZN / month": ["AZN / ay", "AZN / месяц"],
-  "Device setup, installation, connection and system activation.": [
-    "Cihazın hazırlanması, quraşdırılması, qoşulması və sistemin aktivləşdirilməsi.",
-    "Подготовка устройства, установка, подключение и активация системы.",
+  "Installation, system activation and the first month of service are included.": [
+    "Quraşdırılma, sistemin aktivləşdirilməsi və ilk aylıq xidmət daxildir.",
+    "Установка, активация системы и обслуживание за первый месяц включены.",
   ],
   "Continuous monitoring, analytics, reports and remote support.": [
     "Davamlı monitorinq, analitika, hesabatlar və uzaqdan dəstək.",
     "Непрерывный мониторинг, аналитика, отчёты и удалённая поддержка.",
   ],
-  "Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription. Additional locations are quoted separately.": [
-    "Qiymət bir obyekt üçün nəzərdə tutulub. Abunəlik müddətində monitorinq avadanlığı HEAT-in mülkiyyətində qalır. Əlavə filiallar ayrıca hesablanır.",
-    "Цена указана для одного объекта. Во время подписки оборудование остаётся собственностью HEAT. Дополнительные филиалы рассчитываются отдельно.",
+  "You do not pay 220 + 120 AZN in the first month. Your first-month total is 220 AZN; every following month is 120 AZN. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.": [
+    "İlk ay 220 + 120 AZN ödəmirsiniz. İlk ay üçün ümumi ödəniş 220 AZN-dir; sonrakı hər ay 120 AZN-dir. Qiymət bir obyekt üçün nəzərdə tutulub. Abunəlik müddətində monitorinq avadanlığı HEAT-in mülkiyyətində qalır.",
+    "В первый месяц вы не платите 220 + 120 AZN. Общая оплата за первый месяц — 220 AZN; каждый следующий месяц — 120 AZN. Цена указана для одного объекта. Во время подписки оборудование остаётся собственностью HEAT.",
   ],
   "EVERYTHING INCLUDED": ["PAKETƏ DAXİLDİR", "ВСЁ ВКЛЮЧЕНО"],
   "HEAT energy monitoring service": ["HEAT enerji monitorinqi xidməti", "Сервис энергомониторинга HEAT"],
