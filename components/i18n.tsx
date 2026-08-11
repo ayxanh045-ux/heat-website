@@ -596,6 +596,168 @@ const copy: Record<string, Pair> = {
   "73% of projected monthly cost": ["Proqnozlaşdırılan aylıq xərcin 73%-i", "73% прогнозируемых месячных затрат"],
 };
 
+Object.assign(copy, {
+  "Select language": ["Dil seçin", "Выберите язык"],
+  Provisioning: ["Quraşdırma", "Настройка"],
+  Customers: ["Müştərilər", "Клиенты"],
+  "New customer system": ["Yeni müştəri sistemi", "Новая система клиента"],
+  "Enter the information so the provisioner creates a separate, isolated energy monitoring system.": ["Məlumatları daxil edin — provisioner ayrıca və izolə edilmiş enerji monitorinq sistemi qursun.", "Введите данные — система развёртывания создаст отдельную изолированную систему энергомониторинга."],
+  "Provisioner agent": ["Provisioner agent", "Агент развёртывания"],
+  Waiting: ["Gözləyir", "Ожидает"],
+  "Customer systems": ["Müştəri sistemləri", "Системы клиентов"],
+  "Each customer has a separate token and dashboard. As admin, you can view all of them.": ["Hər müştərinin tokeni və dashboardu ayrıdır. Siz admin kimi hamısına baxa bilərsiniz.", "У каждого клиента отдельный токен и дашборд. Администратор может просматривать их все."],
+  Refresh: ["Yenilə", "Обновить"],
+  Customer: ["Müştəri", "Клиент"],
+  Device: ["Cihaz", "Устройство"],
+  Mode: ["Rejim", "Режим"],
+  Status: ["Status", "Статус"],
+  "Admin view": ["Admin baxışı", "Просмотр администратора"],
+  "Customer login": ["Müştəri girişi", "Вход клиента"],
+  Edit: ["Edit", "Изменить"],
+  Vault: ["Seyf", "Хранилище"],
+  Queued: ["Növbədə", "В очереди"],
+  Installing: ["Qurulur", "Устанавливается"],
+  Active: ["Aktiv", "Активна"],
+  Error: ["Xəta", "Ошибка"],
+  "Daily demo": ["Gündəlik demo", "Ежедневное демо"],
+  "Demo active": ["Demo aktivdir", "Демо активно"],
+  "View dashboard": ["Dashboarda bax", "Открыть дашборд"],
+  "Demo information": ["Demo məlumatları", "Демо-данные"],
+  "Mobile account active": ["Mobil hesab aktivdir", "Мобильный аккаунт активен"],
+  "Customer token": ["Müştəri tokeni", "Токен клиента"],
+  "View vault": ["Seyfə bax", "Открыть хранилище"],
+  Preparation: ["Hazırlıq", "Подготовка"],
+  "You define it": ["Özün təyin edirsən", "Задаётся вами"],
+  "Taken from another system — hover over the asterisk": ["Başqa sistemdən götürülür — ulduzun üzərinə gəl", "Берётся из другой системы — наведите на звёздочку"],
+  "Customer and facility": ["Müştəri və obyekt", "Клиент и объект"],
+  "Identification information displayed in the system.": ["Sistemdə görünəcək identifikasiya məlumatları.", "Идентификационные данные, отображаемые в системе."],
+  "Customer name": ["Müştəri adı", "Название клиента"],
+  "Customer slug": ["Müştəri slug", "Slug клиента"],
+  "Facility name": ["Obyekt adı", "Название объекта"],
+  "Device name": ["Cihaz adı", "Название устройства"],
+  "Device model": ["Cihaz modeli", "Модель устройства"],
+  "Main electrical panel": ["Baş elektrik paneli", "Главный электрощит"],
+  "Collector mode": ["Collector rejimi", "Режим сбора"],
+  "Polling — initial setup": ["Polling — ilk quraşdırma", "Опрос — первичная настройка"],
+  "Cloud Key is stored only in encrypted form in the customer vault.": ["Cloud Key yalnız şifrələnmiş halda müştəri seyfində saxlanır.", "Cloud Key хранится в хранилище клиента только в зашифрованном виде."],
+  "InfluxDB and Grafana": ["InfluxDB və Grafana", "InfluxDB и Grafana"],
+  "Passwords use the customer slug prefix; the admin token is generated randomly.": ["Parollar müştəri slug prefiksi ilə, admin token isə təsadüfi yaradılır.", "Пароли используют префикс slug клиента, а токен администратора создаётся случайно."],
+  "Generate secure values": ["Təhlükəsiz dəyərlər yarat", "Создать безопасные значения"],
+  "Fixed electricity tariff — AZN/kWh": ["Elektrik tarifi — sabit AZN/kWh", "Фиксированный тариф — AZN/кВт·ч"],
+  "Write, analytics-read and Grafana-read tokens are created automatically during setup.": ["Write, analytics-read və Grafana-read tokenləri quraşdırma zamanı avtomatik yaradılır.", "Токены write, analytics-read и Grafana-read создаются автоматически при настройке."],
+  "Optional notification and reporting channel.": ["İstəyə bağlı bildiriş və hesabat kanalı.", "Необязательный канал уведомлений и отчётов."],
+  Enable: ["Aktiv et", "Включить"],
+  "Allowed chat IDs": ["Allowed chat ID-lər", "Разрешённые chat ID"],
+  "Daily automatic report count": ["Gündəlik avtomatik report sayı", "Количество автоматических отчётов в день"],
+  "Phase A name": ["Faza A adı", "Название фазы A"],
+  "Phase B name": ["Faza B adı", "Название фазы B"],
+  "Phase C name": ["Faza C adı", "Название фазы C"],
+  "Phase A": ["Faza A", "Фаза A"],
+  "Phase B": ["Faza B", "Фаза B"],
+  "Phase C": ["Faza C", "Фаза C"],
+  "Facility details": ["Məkan haqqında ətraflı", "Подробно об объекте"],
+  "Used to compare energy measurements with the facility's real operating mode and provide more accurate advice.": ["Enerji ölçmələrini obyektin real iş rejimi ilə müqayisə edib daha dəqiq məsləhət vermək üçündür.", "Используется для сопоставления измерений с реальным режимом работы объекта и более точных рекомендаций."],
+  "AI CONTEXT": ["AI KONTEKSTİ", "КОНТЕКСТ ИИ"],
+  "Business / facility type": ["Biznes / məkan növü", "Тип бизнеса / объекта"],
+  "Working hours": ["İş saatları", "Часы работы"],
+  "Closed days": ["Bağlı günlər", "Выходные дни"],
+  "Main electrical equipment": ["Əsas elektrik avadanlıqları", "Основное электрооборудование"],
+  "Always-on equipment": ["Daim işləməli avadanlıqlar", "Постоянно работающее оборудование"],
+  "Energy goal": ["Enerji məqsədi", "Цель энергосбережения"],
+  "Additional information": ["Əlavə məlumat", "Дополнительная информация"],
+  "Do not enter passwords, tokens, Cloud Keys or personal information here. Only this facility description and energy metrics are sent to AI.": ["Buraya parol, token, Cloud Key və şəxsi məlumat yazmayın. AI-yə yalnız bu məkan təsviri və enerji göstəriciləri ötürülür.", "Не вводите здесь пароли, токены, Cloud Key или персональные данные. ИИ получает только описание объекта и показатели энергии."],
+  "Information is stored in an encrypted vault and is visible only to the admin.": ["Məlumatlar şifrələnmiş seyfdə saxlanır və yalnız adminə göstərilir.", "Данные хранятся в зашифрованном хранилище и доступны только администратору."],
+  "Create customer system": ["Müştəri sistemini qur", "Создать систему клиента"],
+  "Adding to queue": ["Növbəyə əlavə edilir", "Добавление в очередь"],
+  "Customer added to queue": ["Müştəri növbəyə əlavə edildi", "Клиент добавлен в очередь"],
+  "The local provisioner will install the system. Status will update automatically.": ["Lokal provisioner agent sistemi quracaq. Status siyahıda avtomatik yenilənəcək.", "Локальный агент развёртывания установит систему. Статус обновится автоматически."],
+  "New customer": ["Yeni müştəri", "Новый клиент"],
+  "CUSTOMER PORTAL": ["MÜŞTƏRİ PORTALI", "ПОРТАЛ КЛИЕНТА"],
+  "Log in to your dashboard": ["Öz dashboardunuza giriş", "Вход в ваш дашборд"],
+  "Enter the personal access token issued by HEAT only for your facility.": ["HEAT tərəfindən yalnız sizin obyektiniz üçün verilmiş şəxsi giriş tokenini daxil edin.", "Введите персональный токен доступа, выданный HEAT только для вашего объекта."],
+  "Access token": ["Giriş tokeni", "Токен доступа"],
+  "Hide token": ["Tokeni gizlət", "Скрыть токен"],
+  "Show token": ["Tokeni göstər", "Показать токен"],
+  "Checking...": ["Yoxlanılır...", "Проверка..."],
+  "Open dashboard": ["Dashboarda daxil ol", "Открыть дашборд"],
+  "This token opens only your dashboard. It does not grant access to the admin panel.": ["Bu token yalnız sizə aid dashboardu açır. Admin panelinə giriş vermir.", "Этот токен открывает только ваш дашборд и не даёт доступа к панели администратора."],
+  "This login is only for the customer dashboard": ["Bu giriş yalnız müştəri dashboardu üçündür", "Этот вход предназначен только для дашборда клиента"],
+  "Customer dashboard": ["Müştəri dashboardu", "Дашборд клиента"],
+  Logout: ["Çıxış", "Выйти"],
+  Normal: ["Normal", "Норма"],
+  "Peak load": ["Pik yük", "Пиковая нагрузка"],
+  Anomaly: ["Anomaliya", "Аномалия"],
+  Attention: ["Diqqət", "Внимание"],
+  "Shelly connected": ["Shelly qoşulub", "Shelly подключён"],
+  "InfluxDB is recording": ["InfluxDB yazır", "InfluxDB записывает"],
+  "Grafana is ready": ["Grafana hazırdır", "Grafana готова"],
+  "Telegram is active": ["Telegram aktivdir", "Telegram активен"],
+  "Current power": ["Hazırkı güc", "Текущая мощность"],
+  "Live measurement": ["Canlı ölçü", "Текущее измерение"],
+  "Last completed day": ["Son tamamlanmış gün", "Последний завершённый день"],
+  "Yesterday's value": ["Dünənin göstəricisi", "Показатель за вчера"],
+  "Monthly forecast": ["Aylıq proqnoz", "Прогноз на месяц"],
+  "System status": ["Sistem statusu", "Состояние системы"],
+  "No problems": ["Problem yoxdur", "Проблем нет"],
+  "Check required": ["Yoxlama lazımdır", "Требуется проверка"],
+  "24-hour power": ["24 saatlıq güc", "Мощность за 24 часа"],
+  "Phases configured during setup": ["Qurulumda təyin edilmiş fazalar", "Фазы, заданные при настройке"],
+  "Phases and lines": ["Fazalar və xətlər", "Фазы и линии"],
+  "AI RECOMMENDATIONS": ["AI MƏSLƏHƏTLƏRİ", "РЕКОМЕНДАЦИИ ИИ"],
+  "FACILITY PROFILE ACTIVE": ["MƏKAN PROFİLİ AKTİVDİR", "ПРОФИЛЬ ОБЪЕКТА АКТИВЕН"],
+  "ENERGY ANALYSIS": ["ENERJİ ANALİZİ", "АНАЛИЗ ЭНЕРГИИ"],
+  "Consumption is normal": ["İstehlak normaldır", "Потребление в норме"],
+  "Peak load detected": ["Pik yük müəyyən edildi", "Обнаружена пиковая нагрузка"],
+  "Unusual load on Phase A": ["Faza A-da qeyri-adi yük", "Необычная нагрузка на фазе A"],
+  "This is a preliminary automated analysis, not an electrical safety diagnosis.": ["Bu ilkin avtomatik analizdir; elektrik təhlükəsizliyi diaqnozu deyil.", "Это предварительный автоматический анализ, а не диагностика электробезопасности."],
+  online: ["online", "онлайн"],
+  now: ["indi", "сейчас"],
+  "System is normal": ["Sistem normaldır", "Система в норме"],
+  "Peak load warning": ["Pik yük xəbərdarlığı", "Предупреждение о пиковой нагрузке"],
+  "Anomaly detected": ["Anomaliya aşkarlandı", "Обнаружена аномалия"],
+  "Daily automatic demo": ["Gündəlik avtomatik demo", "Ежедневное автоматическое демо"],
+  "Demo view": ["Demo görünüşü", "Демо-режим"],
+  "Real energy data will appear in Grafana when the system is active.": ["Real enerji məlumatları sistem aktiv olduqda Grafana-da görünəcək.", "Реальные данные энергопотребления появятся в Grafana после активации системы."],
+  "ENERGY MONITORING": ["ENERGY MONITORING", "МОНИТОРИНГ ЭНЕРГИИ"],
+  "Day 2 of the month": ["Ayın 2-ci günü", "2-й день месяца"],
+  "24-hour power graph for three phases": ["Üç fazanın 24 saatlıq güc qrafiki", "24-часовой график мощности трёх фаз"],
+  "The refrigerator and tea machine load is within the expected operating range. No action is currently required.": ["Soyuducu və çay aparatının yükü gözlənilən iş rejimindədir. Hazırda müdaxilə tələb olunmur.", "Нагрузка холодильника и чайного аппарата соответствует ожидаемому режиму. Сейчас вмешательство не требуется."],
+  "After closing, check the samovar and lighting circuits using the checklist.": ["Bağlanışdan sonra samovar və işıq xətlərini yoxlama siyahısı ilə nəzarət edin.", "После закрытия проверьте линии самовара и освещения по контрольному списку."],
+  "Monitor the nighttime consumption of refrigerators that must remain on separately.": ["Daim işləməli soyuducuların gecə sərfiyyatını ayrıca izləyin.", "Отдельно отслеживайте ночное потребление холодильников, которые должны работать постоянно."],
+  "The tea machine, oven and air conditioner are running at the same time. Delaying the oven by 15 minutes may reduce the peak load.": ["Çay aparatı, soba və kondisioner eyni vaxtda işləyir. Sobanın işini 15 dəqiqə gecikdirmək pik yükü azalda bilər.", "Чайный аппарат, печь и кондиционер работают одновременно. Задержка включения печи на 15 минут может снизить пиковую нагрузку."],
+  "Start high-power equipment 10–15 minutes apart.": ["Yüksək güclü avadanlıqları 10–15 dəqiqə fərqlə işə salın.", "Включайте мощное оборудование с интервалом 10–15 минут."],
+  "If the peak repeats, compare the work schedule for that hour.": ["Pik təkrarlanarsa həmin saatdakı iş cədvəlini müqayisə edin.", "Если пик повторится, сопоставьте его с графиком работы в этот час."],
+  "After closing time, continuous consumption of 6.10 kW is visible on Phase A. Check that the tea machine and oven are switched off.": ["Bağlanış saatından sonra Faza A-da 6.10 kW davamlı istehlak görünür. Çay aparatı və sobanın söndürüldüyünü yoxlayın.", "После закрытия на фазе A наблюдается постоянное потребление 6,10 кВт. Проверьте, выключены ли чайный аппарат и печь."],
+  "Check the equipment connected to Phase A on site.": ["Faza A-ya bağlı avadanlıqları yerində yoxlayın.", "Проверьте на месте оборудование, подключённое к фазе A."],
+  "If the load continues, ask a qualified electrician to inspect the circuit.": ["Yük davam edərsə ixtisaslı elektrikçidən xətti yoxlamasını istəyin.", "Если нагрузка сохранится, попросите квалифицированного электрика проверить линию."],
+  "No problem detected.": ["Problem aşkarlanmayıb.", "Проблем не обнаружено."],
+  "Recommendation: delay the oven by 15 minutes.": ["Tövsiyə: sobanı 15 dəqiqə gecikdirin.", "Рекомендация: отложите включение печи на 15 минут."],
+  "It is 4.8× higher than the nighttime baseline.": ["Gecə bazasından 4.8× yüksəkdir.", "Это в 4,8 раза выше ночного базового уровня."],
+  "Check the facility.": ["Obyekti yoxlayın.", "Проверьте объект."],
+  "Open the real Grafana dashboard": ["Real Grafana dashboardunu aç", "Открыть реальный дашборд Grafana"],
+  "The real Grafana link will be activated after setup is complete.": ["Real Grafana keçidi qurulum tamamlandıqdan sonra aktiv olacaq.", "Ссылка на реальный Grafana активируется после завершения настройки."],
+  "Edit customer": ["MÜŞTƏRİ REDAKTƏSİ", "РЕДАКТИРОВАНИЕ КЛИЕНТА"],
+  "Update the facility, Shelly and Telegram information securely.": ["Obyekt, Shelly və Telegram məlumatlarını təhlükəsiz şəkildə yenilə.", "Безопасно обновите данные объекта, Shelly и Telegram."],
+  "Customer slug — cannot be changed": ["Müştəri slug — dəyişdirilmir", "Slug клиента — изменить нельзя"],
+  "Telegram notifications": ["Telegram bildirişləri", "Уведомления Telegram"],
+  "Change the bot, automatic report times and phase names here.": ["Bot, avtomatik report saatları və faza adlarını buradan dəyiş.", "Здесь можно изменить бота, время автоматических отчётов и названия фаз."],
+  "Activate commands": ["Komandaları aktiv et", "Активировать команды"],
+  "Send report": ["Hesabat göndər", "Отправить отчёт"],
+  "Peak test": ["Pik testi", "Тест пика"],
+  "Anomaly test": ["Anomaliya testi", "Тест аномалии"],
+  "AI analysis uses this profile together with energy measurements.": ["AI analizi bu profili enerji göstəriciləri ilə birlikdə istifadə edir.", "ИИ использует этот профиль вместе с показателями энергопотребления."],
+  "Do not enter passwords, tokens or personal information.": ["Parol, token və şəxsi məlumat yazmayın.", "Не вводите пароли, токены или персональные данные."],
+  "Changes are stored in an encrypted vault.": ["Dəyişikliklər şifrələnmiş seyfdə saxlanır.", "Изменения хранятся в зашифрованном хранилище."],
+  "Save changes": ["Dəyişiklikləri saxla", "Сохранить изменения"],
+  "Saving...": ["Saxlanır...", "Сохранение..."],
+  "Back to customer list": ["Müştəri siyahısına qayıt", "Вернуться к списку клиентов"],
+  "Customer information is being opened securely": ["Müştəri məlumatları təhlükəsiz şəkildə açılır", "Данные клиента безопасно загружаются"],
+  "Demo information saved": ["Demo məlumatları saxlandı", "Демо-данные сохранены"],
+  "Update added to queue": ["Yenilənmə növbəyə əlavə edildi", "Обновление добавлено в очередь"],
+  "These changes apply only to the test account.": ["Bu dəyişikliklər yalnız test hesabına aiddir.", "Эти изменения относятся только к тестовой учётной записи."],
+  "The local system will apply the new information and restart the services.": ["Lokal sistem yeni məlumatları tətbiq edib xidmətləri yenidən başladacaq.", "Локальная система применит новые данные и перезапустит службы."],
+});
+
 const reverse = new Map<string, string>();
 Object.entries(copy).forEach(([en, [a, r]]) => {
   reverse.set(a, en);
@@ -610,6 +772,41 @@ function tx(value: string, language: Language) {
     r = value.match(/\s*$/)?.[0] ?? "",
     raw = value.trim();
   if (!raw) return value;
+  const prefixes = {
+    az: { dashboard: "Müştəri dashboardu", phase: "Faza", report: "Avtomatik report", times: "dəfə" },
+    en: { dashboard: "Customer dashboard", phase: "Phase", report: "Automatic report", times: "times" },
+    ru: { dashboard: "Дашборд клиента", phase: "Фаза", report: "Автоматический отчёт", times: "раз" },
+  }[language];
+  const dashboardMatch = raw.match(/^(?:Müştəri dashboardu|Customer dashboard|Дашборд клиента) · (.+)$/);
+  if (dashboardMatch) return `${l}${prefixes.dashboard} · ${dashboardMatch[1]}${r}`;
+  const phaseMatch = raw.match(/^(?:Faza|Phase|Фаза) ([ABC]) — (.+)$/);
+  if (phaseMatch) return `${l}${prefixes.phase} ${phaseMatch[1]} — ${phaseMatch[2]}${r}`;
+  const reportMatch = raw.match(/^(?:Avtomatik report|Automatic report|Автоматический отчёт) (\d+) — (?:saat|time|время)$/);
+  if (reportMatch) return `${l}${prefixes.report} ${reportMatch[1]} — ${language === "az" ? "saat" : language === "en" ? "time" : "время"}${r}`;
+  const countMatch = raw.match(/^(\d+) (?:dəfə|times|раз)$/);
+  if (countMatch) return `${l}${countMatch[1]} ${prefixes.times}${r}`;
+  const demoDateMatch = raw.match(/^(?:(\d{4}-\d{2}-\d{2}) tarixi üçün yaradılmış realist nümunə məlumatlarıdır\. Sabah avtomatik yenilənəcək\.|Realistic sample data generated for (\d{4}-\d{2}-\d{2})\. It will update automatically tomorrow\.|Реалистичные тестовые данные созданы для (\d{4}-\d{2}-\d{2})\. Завтра они обновятся автоматически\.)$/);
+  if (demoDateMatch) {
+    const date = demoDateMatch[1] ?? demoDateMatch[2] ?? demoDateMatch[3];
+    const messages = {
+      az: `${date} tarixi üçün yaradılmış realist nümunə məlumatlarıdır. Sabah avtomatik yenilənəcək.`,
+      en: `Realistic sample data generated for ${date}. It will update automatically tomorrow.`,
+      ru: `Реалистичные тестовые данные созданы для ${date}. Завтра они обновятся автоматически.`,
+    };
+    return l + messages[language] + r;
+  }
+  if (raw.includes("\n")) {
+    const labels: Record<Language, Record<string, string>> = {
+      az: { "Tarix:": "Tarix:", "Hazırkı güc:": "Hazırkı güc:", "Bugünkü enerji:": "Bugünkü enerji:", "Son gün:": "Son gün:", "Aylıq proqnoz:": "Aylıq proqnoz:", "Faza A:": "Faza A:", "Tövsiyə:": "Tövsiyə:", "Saat:": "Saat:" },
+      en: { "Tarix:": "Date:", "Hazırkı güc:": "Current power:", "Bugünkü enerji:": "Today's energy:", "Son gün:": "Last day:", "Aylıq proqnoz:": "Monthly forecast:", "Faza A:": "Phase A:", "Tövsiyə:": "Recommendation:", "Saat:": "Time:" },
+      ru: { "Tarix:": "Дата:", "Hazırkı güc:": "Текущая мощность:", "Bugünkü enerji:": "Энергия за сегодня:", "Son gün:": "Последний день:", "Aylıq proqnoz:": "Прогноз на месяц:", "Faza A:": "Фаза A:", "Tövsiyə:": "Рекомендация:", "Saat:": "Время:" },
+    };
+    let dynamic = raw;
+    const sourceLabels = ["Tarix:", "Date:", "Дата:", "Hazırkı güc:", "Current power:", "Текущая мощность:", "Bugünkü enerji:", "Today's energy:", "Энергия за сегодня:", "Son gün:", "Last day:", "Последний день:", "Aylıq proqnoz:", "Monthly forecast:", "Прогноз на месяц:", "Faza A:", "Phase A:", "Фаза A:", "Tövsiyə:", "Recommendation:", "Рекомендация:", "Saat:", "Time:", "Время:"];
+    const canonical = ["Tarix:", "Tarix:", "Tarix:", "Hazırkı güc:", "Hazırkı güc:", "Hazırkı güc:", "Bugünkü enerji:", "Bugünkü enerji:", "Bugünkü enerji:", "Son gün:", "Son gün:", "Son gün:", "Aylıq proqnoz:", "Aylıq proqnoz:", "Aylıq proqnoz:", "Faza A:", "Faza A:", "Faza A:", "Tövsiyə:", "Tövsiyə:", "Tövsiyə:", "Saat:", "Saat:", "Saat:"];
+    sourceLabels.forEach((source, index) => { dynamic = dynamic.replaceAll(source, labels[language][canonical[index]]); });
+    return l + dynamic.split("\n").map(line => tx(line, language).trim()).join("\n") + r;
+  }
   const normalized = raw.replaceAll("'", "’");
   const en =
     reverse.get(raw) ??
@@ -625,12 +822,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLang] = useState<Language>("az");
   useEffect(() => {
     const x = localStorage.getItem("heat-language") as Language;
-    if (["en", "az", "ru"].includes(x)) setLang(x);
-    else localStorage.setItem("heat-language", "az");
+    if (["en", "az", "ru"].includes(x)) {
+      const frame = requestAnimationFrame(() => setLang(x));
+      return () => cancelAnimationFrame(frame);
+    }
+    localStorage.setItem("heat-language", "az");
   }, []);
   useLayoutEffect(() => {
     document.documentElement.lang = language;
-    const root = document.getElementById("heat-site");
+    const root = document.querySelector("#heat-site, #admin-portal, #customer-portal");
     if (!root) return;
     const run = (node: Node) => {
       if (node.nodeType === Node.TEXT_NODE && node.nodeValue) {

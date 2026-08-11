@@ -3,6 +3,7 @@
 import { BrainCircuit, ExternalLink, MessageCircle, Sparkles, Zap } from "lucide-react";
 import { useState } from "react";
 import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
+import { useLanguage, type Language } from "@/components/i18n";
 
 type Customer = {
   customerName: string;
@@ -54,7 +55,7 @@ function seededRandom(seedText: string) {
   };
 }
 
-function dailyDemoScenarios(dateKey: string) {
+function dailyDemoScenarios(dateKey: string, language: Language) {
   const [year, month, day] = dateKey.split("-").map(Number);
   const completedDays = Math.max(1, day - 1);
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -69,7 +70,8 @@ function dailyDemoScenarios(dateKey: string) {
   const remainingDays = daysInMonth - completedDays;
   const baseProjection = actualEnergy + latestEnergy * remainingDays;
   const basePower = 5.7 + random() * 1.9;
-  const lastDay = new Intl.DateTimeFormat("az-AZ", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, completedDays)));
+  const locale = language === "az" ? "az-AZ" : language === "ru" ? "ru-RU" : "en-US";
+  const lastDay = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, completedDays)));
   const makeScenario = (key: ScenarioKey, factor: number) => {
     const source = SCENARIOS[key];
     const power = basePower * factor;
@@ -90,8 +92,9 @@ function phaseTitle(letter: string, label: string) {
 }
 
 export function CustomerDashboard({ customer, dailyDemoDate, customerView = false, phaseLabels = ["Faza A", "Faza B", "Faza C"], hasAiContext = false }: { customer: Customer; dailyDemoDate?: string; customerView?: boolean; phaseLabels?: [string, string, string]; hasAiContext?: boolean }) {
+  const { language } = useLanguage();
   const [scenario, setScenario] = useState<keyof typeof SCENARIOS>("normal");
-  const scenarios = dailyDemoDate ? dailyDemoScenarios(dailyDemoDate) : SCENARIOS;
+  const scenarios = dailyDemoDate ? dailyDemoScenarios(dailyDemoDate, language) : SCENARIOS;
   const current = scenarios[scenario];
   return <div className={`customer-dashboard tone-${current.tone}`}>
     {!customerView && <div className="customer-demo-note"><Sparkles size={15} /><span>{dailyDemoDate ? "Gündəlik avtomatik demo" : "Demo görünüşü"}</span><p>{dailyDemoDate ? `${dailyDemoDate} tarixi üçün yaradılmış realist nümunə məlumatlarıdır. Sabah avtomatik yenilənəcək.` : "Real enerji məlumatları sistem aktiv olduqda Grafana-da görünəcək."}</p></div>}

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LanguageProvider } from "@/components/i18n";
+import { PortalLanguageSelect } from "@/components/portal-language-select";
 
 export const metadata: Metadata = {
   title: "HEAT Admin | Control Panel",
@@ -9,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <LanguageProvider><div id="admin-portal"><PortalLanguageSelect />{children}</div></LanguageProvider>;
 }
