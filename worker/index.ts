@@ -29,8 +29,14 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.hostname === "heat-energy-analytics-az.hasanov-ayxan.chatgpt.site" || url.hostname === "www.heatenergyanalytics.com") {
-      return Response.redirect(`https://heatenergyanalytics.com${url.pathname}${url.search}`, 308);
+    if (url.hostname.endsWith(".chatgpt.site") || url.hostname === "www.heatenergyanalytics.com") {
+      const canonicalUrl = `https://heatenergyanalytics.com${url.pathname}${url.search}`;
+      const baseRedirect = Response.redirect(canonicalUrl, 308);
+      const redirect = new Response(baseRedirect.body, baseRedirect);
+      redirect.headers.set("link", `<${canonicalUrl}>; rel="canonical"`);
+      redirect.headers.set("x-robots-tag", "noindex, nofollow");
+      redirect.headers.set("cache-control", "public, max-age=3600");
+      return redirect;
     }
 
     if (url.pathname === "/robots.txt") {
@@ -52,7 +58,7 @@ const worker = {
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
           "  <url>",
           "    <loc>https://heatenergyanalytics.com/</loc>",
-          "    <lastmod>2026-08-09</lastmod>",
+          "    <lastmod>2026-08-11</lastmod>",
           "    <changefreq>weekly</changefreq>",
           "    <priority>1.0</priority>",
           "  </url>",
@@ -97,6 +103,7 @@ const worker = {
     secured.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     secured.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     secured.headers.set("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; upgrade-insecure-requests");
+    if (url.pathname === "/") secured.headers.set("Link", "<https://heatenergyanalytics.com/>; rel=\"canonical\"");
     return secured;
   },
 };
