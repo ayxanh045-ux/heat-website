@@ -14,6 +14,8 @@ type Fields = {
   telegramBotToken: string; telegramAllowedChatIds: string; telegramDefaultChatId: string;
   telegramReportCount: number; telegramReportTimes: string;
   phaseALabel: string; phaseBLabel: string; phaseCLabel: string;
+  businessType: string; workingHours: string; closedDays: string;
+  majorEquipment: string; alwaysOnEquipment: string; energyGoals: string; siteContext: string;
 };
 
 const DEFAULT_REPORT_TIMES = ["09:00", "13:00", "18:00", "22:00", "01:00", "05:00"];
@@ -28,6 +30,8 @@ const INITIAL: Fields = {
   telegramBotToken: "", telegramAllowedChatIds: "", telegramDefaultChatId: "",
   telegramReportCount: 1, telegramReportTimes: "09:00",
   phaseALabel: "Faza A", phaseBLabel: "Faza B", phaseCLabel: "Faza C",
+  businessType: "", workingHours: "", closedDays: "",
+  majorEquipment: "", alwaysOnEquipment: "", energyGoals: "", siteContext: "",
 };
 
 function randomSecret(length = 32): string {
@@ -56,6 +60,13 @@ function Field({ label, name, value, onChange, type = "text", placeholder, requi
     <input name={name} value={value} required={required} type={secret && visible ? "text" : type} placeholder={placeholder} onChange={(event) => onChange(name, event.target.value)} autoComplete="off" disabled={disabled} />
     {secret && <button type="button" onClick={() => setVisible(!visible)} aria-label={visible ? "Dəyəri gizlət" : "Dəyəri göstər"}>{visible ? <EyeOff size={16} /> : <Eye size={16} />}</button>}
   </div></label>;
+}
+
+function TextAreaField({ label, name, value, onChange, placeholder, rows = 3 }: {
+  label: string; name: keyof Fields; value: string; onChange: (name: keyof Fields, value: string) => void;
+  placeholder: string; rows?: number;
+}) {
+  return <label className="admin-field admin-textarea-field"><span>{label}</span><textarea name={name} value={value} rows={rows} placeholder={placeholder} onChange={(event) => onChange(name, event.target.value)} /></label>;
 }
 
 export function ProvisioningForm() {
@@ -136,6 +147,15 @@ export function ProvisioningForm() {
       <Field label="Faza B adı" name="phaseBLabel" value={fields.phaseBLabel} onChange={set} placeholder="Mətbəx" />
       <Field label="Faza C adı" name="phaseCLabel" value={fields.phaseCLabel} onChange={set} placeholder="İşıqlandırma + Anbar" />
     </div>}</section>
+    <section className="site-profile-section"><div className="admin-section-title"><span>05</span><div><h2>Məkan haqqında ətraflı</h2><p>Enerji ölçmələrini obyektin real iş rejimi ilə müqayisə edib daha dəqiq məsləhət vermək üçündür.</p></div><span className="ai-context-badge">AI KONTEKSTİ</span></div><div className="admin-form-grid">
+      <Field label="Biznes / məkan növü" name="businessType" value={fields.businessType} onChange={set} placeholder="Çayxana, restoran, ofis, market..." required={false} />
+      <Field label="İş saatları" name="workingHours" value={fields.workingHours} onChange={set} placeholder="Hər gün 08:00–01:00" required={false} />
+      <Field label="Bağlı günlər" name="closedDays" value={fields.closedDays} onChange={set} placeholder="Yoxdur / Bazar ertəsi" required={false} />
+      <TextAreaField label="Əsas elektrik avadanlıqları" name="majorEquipment" value={fields.majorEquipment} onChange={set} placeholder="Məsələn: 3 samovar, 2 kondisioner, soyuducular, elektrik sobası..." />
+      <TextAreaField label="Daim işləməli avadanlıqlar" name="alwaysOnEquipment" value={fields.alwaysOnEquipment} onChange={set} placeholder="Məsələn: soyuducular və təhlükəsizlik sistemi gecə də söndürülməməlidir." />
+      <TextAreaField label="Enerji məqsədi" name="energyGoals" value={fields.energyGoals} onChange={set} placeholder="Aylıq xərci azaltmaq, gecə itkilərini tapmaq, pikləri idarə etmək..." />
+      <TextAreaField label="Əlavə məlumat" name="siteContext" value={fields.siteContext} onChange={set} placeholder="Müştəri sayı, sıx saatlar, mövsümi dəyişikliklər və xüsusi iş qaydaları..." rows={5} />
+    </div><div className="ai-privacy-note"><ShieldCheck size={16} /><span>Buraya parol, token, Cloud Key və şəxsi məlumat yazmayın. AI-yə yalnız bu məkan təsviri və enerji göstəriciləri ötürülür.</span></div></section>
     {error && <div className="admin-error" role="alert">{error}</div>}
     <div className="admin-submit-row"><div><ShieldCheck size={18} /><span>Məlumatlar şifrələnmiş seyfdə saxlanır və yalnız adminə göstərilir.</span></div><button disabled={busy} type="submit">{busy ? <Loader2 className="spin" size={17} /> : <Plus size={17} />}{busy ? "Növbəyə əlavə edilir" : "Müştəri sistemini qur"}</button></div>
   </form>;

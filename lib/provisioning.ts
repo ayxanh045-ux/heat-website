@@ -31,6 +31,13 @@ export type ProvisioningInput = {
   phaseALabel: string;
   phaseBLabel: string;
   phaseCLabel: string;
+  businessType: string;
+  workingHours: string;
+  closedDays: string;
+  majorEquipment: string;
+  alwaysOnEquipment: string;
+  energyGoals: string;
+  siteContext: string;
 };
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -98,6 +105,13 @@ export function validateProvisioningInput(raw: unknown): ProvisioningInput {
     phaseALabel: cleanString(input.phaseALabel, 60) || "Faza A",
     phaseBLabel: cleanString(input.phaseBLabel, 60) || "Faza B",
     phaseCLabel: cleanString(input.phaseCLabel, 60) || "Faza C",
+    businessType: cleanString(input.businessType, 120),
+    workingHours: cleanString(input.workingHours, 200),
+    closedDays: cleanString(input.closedDays, 120),
+    majorEquipment: cleanString(input.majorEquipment, 1200),
+    alwaysOnEquipment: cleanString(input.alwaysOnEquipment, 800),
+    energyGoals: cleanString(input.energyGoals, 800),
+    siteContext: cleanString(input.siteContext, 2000),
   };
   if (!result.shellyCloudAuthKey) throw new Error("Shelly Cloud Key tələb olunur.");
   if (collectorMode === "hybrid") {

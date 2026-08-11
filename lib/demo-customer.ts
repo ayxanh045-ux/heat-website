@@ -35,6 +35,13 @@ export const DEMO_EDIT_VALUES = {
   phaseALabel: "Zal + Kondisioner",
   phaseBLabel: "Mətbəx",
   phaseCLabel: "İşıqlandırma + Anbar",
+  businessType: "Çayxana və isti içki məkanı",
+  workingHours: "Hər gün 08:00–01:00",
+  closedDays: "Yoxdur",
+  majorEquipment: "3 elektrik samovarı, 2 kondisioner, 4 soyuducu, 1 qabyuyan və zal işıqlandırması",
+  alwaysOnEquipment: "Soyuducular və təhlükəsizlik sistemi gecə də işləməlidir",
+  energyGoals: "Gecə lazımsız sərfiyyatı və günorta piklərini azaltmaq",
+  siteContext: "Ən sıx vaxt 18:00–23:00 arasıdır. Yayda kondisionerlər, qışda əlavə elektrik qızdırıcıları işləyir.",
 };
 
 export function bakuDateKey(now = new Date()): string {
