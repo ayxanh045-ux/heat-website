@@ -97,6 +97,7 @@ export function AdminBotPanel() {
         <div><span>Problem</span><b>{problems}</b></div>
         <div><span>Son hadisələr</span><b>{state.events.length}</b></div>
       </div>
+      {state.health.length > 0 && <div className="admin-bot-health"><h3>Nəzarətdə olan sistemlər</h3>{state.health.map((item) => <div key={item.customerId}><i className={item.status} /><p>{item.customerId === "demo-caspian-coffee" ? "Caspian Coffee · DEMO" : item.customerId}<small>{item.statusMessage || "Status məlumatı qəbul edildi."}</small></p><span>{item.status === "healthy" ? "Sağlam" : "Problem"}</span></div>)}</div>}
       {state.events.length > 0 && <div className="admin-bot-events"><h3>Son Admin Bot hadisələri</h3>{state.events.map((event) => <div key={event.id}><i className={event.outcome} /><p>{event.message.split("\n")[0]}<small>{new Date(event.createdAt).toLocaleString("az-AZ")}</small></p><span>{event.outcome === "delivered" ? "Göndərildi" : event.outcome === "failed" ? "Xəta" : "Gözləyir"}</span></div>)}</div>}
     </>}
   </section>;

@@ -9,6 +9,7 @@ import {
   validateAdminBotSecret,
 } from "@/lib/admin-bot";
 import { requestIsSameOrigin } from "@/lib/provisioning";
+import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,20 @@ export async function GET() {
   if (settings) {
     try { chatId = (await decryptAdminBotSecret(settings.encryptedPayload)).chatId; } catch { /* keep masked */ }
   }
-  const [events, health] = await Promise.all([
+  const [events, storedHealth] = await Promise.all([
     db.select().from(adminBotEvents).orderBy(desc(adminBotEvents.createdAt)).limit(8),
     db.select().from(customerSystemHealth).orderBy(desc(customerSystemHealth.lastHeartbeatAt)).limit(50),
   ]);
+  const health = storedHealth.some((item) => item.customerId === DEMO_CUSTOMER.id)
+    ? storedHealth
+    : [{
+        customerId: DEMO_CUSTOMER.id,
+        status: "healthy",
+        statusMessage: "Virtual demo məlumat axını aktivdir.",
+        servicesJson: JSON.stringify({ dashboard: "healthy", telegram: "healthy", demoGenerator: "healthy" }),
+        lastHeartbeatAt: new Date().toISOString(),
+        lastStatusChangeAt: new Date().toISOString(),
+      }, ...storedHealth];
   return Response.json({
     enabled: settings?.enabled ?? false,
     configured: Boolean(settings),

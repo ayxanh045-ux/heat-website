@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { customers, customerSystemHealth } from "@/db/schema";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { agentIsAuthorized } from "@/lib/provisioning";
+import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 
 type HealthItem = {
   slug?: unknown;
@@ -26,6 +27,24 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     let accepted = 0;
     let alerts = 0;
+
+    await db.insert(customerSystemHealth).values({
+      customerId: DEMO_CUSTOMER.id,
+      status: "healthy",
+      statusMessage: "Virtual demo məlumat axını aktivdir.",
+      servicesJson: JSON.stringify({ dashboard: "healthy", telegram: "healthy", demoGenerator: "healthy" }),
+      lastHeartbeatAt: now,
+      lastStatusChangeAt: now,
+    }).onConflictDoUpdate({
+      target: customerSystemHealth.customerId,
+      set: {
+        status: "healthy",
+        statusMessage: "Virtual demo məlumat axını aktivdir.",
+        servicesJson: JSON.stringify({ dashboard: "healthy", telegram: "healthy", demoGenerator: "healthy" }),
+        lastHeartbeatAt: now,
+      },
+    });
+    accepted += 1;
 
     for (const item of items) {
       const slug = clean(item.slug, 50);
