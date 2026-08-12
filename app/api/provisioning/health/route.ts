@@ -55,9 +55,13 @@ export async function POST(request: Request) {
       const [previous] = await db.select().from(customerSystemHealth)
         .where(eq(customerSystemHealth.customerId, customer.id)).limit(1);
       const message = clean(item.message, 500);
-      const services = item.services && typeof item.services === "object" ? item.services : {};
+      const services = Object.fromEntries(Object.entries(
+        item.services && typeof item.services === "object" ? item.services as Record<string, unknown> : {},
+      ).sort(([left], [right]) => left.localeCompare(right)));
       const servicesJson = JSON.stringify(services).slice(0, 4000);
-      const changed = previous ? previous.status !== status : status !== "healthy";
+      const changed = previous
+        ? previous.status !== status || previous.statusMessage !== (message || null) || previous.servicesJson !== servicesJson
+        : status !== "healthy";
       await db.insert(customerSystemHealth).values({
         customerId: customer.id,
         status,
@@ -78,7 +82,7 @@ export async function POST(request: Request) {
       accepted += 1;
 
       if (changed) {
-        const serviceLines = Object.entries(services as Record<string, unknown>)
+        const serviceLines = Object.entries(services)
           .slice(0, 12).map(([name, value]) => `• ${name}: ${String(value).slice(0, 40)}`).join("\n");
         const recovery = status === "healthy";
         const result = await notifyAdminBot({

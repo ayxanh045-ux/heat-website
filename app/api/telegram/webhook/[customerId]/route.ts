@@ -4,6 +4,7 @@ import { customerSecrets } from "@/db/schema";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput } from "@/lib/provisioning";
 import { allowedTelegramChatIds, callTelegram, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
+import { notifyAdminBot } from "@/lib/admin-bot";
 
 type TelegramUpdate = {
   message?: { chat?: { id?: number | string }; text?: string };
@@ -29,10 +30,23 @@ export async function POST(request: Request, context: { params: Promise<{ custom
     const rawText = update.message?.text?.trim() ?? "";
     if (!rawText.startsWith("/")) return Response.json({ ok: true });
     const command = rawText.split(/\s/, 1)[0].split("@", 1)[0].toLowerCase();
-    await callTelegram(botToken, "sendMessage", {
-      chat_id: chatId,
-      text: demoTelegramReply(command, values),
-    });
+    try {
+      await callTelegram(botToken, "sendMessage", {
+        chat_id: chatId,
+        text: demoTelegramReply(command, values),
+      });
+      await notifyAdminBot({
+        customerId,
+        eventType: "customer_command_used",
+        message: `📲 HEAT Admin — Müştəri Telegram komandası işlətdi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nNəticə: Cavab uğurla göndərildi.\nVaxt: ${new Date().toISOString()}`,
+      });
+    } catch (error) {
+      await notifyAdminBot({
+        customerId,
+        eventType: "customer_command_failed",
+        message: `❌ HEAT Admin — Müştəri Telegram komandasında xəta\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nXəta: ${error instanceof Error ? error.message.slice(0, 180) : "Cavab göndərilmədi."}\nVaxt: ${new Date().toISOString()}`,
+      });
+    }
     return Response.json({ ok: true });
   } catch {
     return Response.json({ ok: true });
