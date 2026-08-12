@@ -81,6 +81,37 @@ export const telegramReportDeliveries = sqliteTable(
   (table) => [uniqueIndex("idx_telegram_report_delivery_unique").on(table.customerId, table.scheduledFor)],
 );
 
+export const adminBotSettings = sqliteTable("admin_bot_settings", {
+  id: text("id").primaryKey(),
+  encryptedPayload: text("encrypted_payload").notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const customerSystemHealth = sqliteTable("customer_system_health", {
+  customerId: text("customer_id").primaryKey().references(() => customers.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("unknown"),
+  statusMessage: text("status_message"),
+  servicesJson: text("services_json").notNull().default("{}"),
+  lastHeartbeatAt: text("last_heartbeat_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  lastStatusChangeAt: text("last_status_change_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const adminBotEvents = sqliteTable(
+  "admin_bot_events",
+  {
+    id: text("id").primaryKey(),
+    customerId: text("customer_id").references(() => customers.id, { onDelete: "set null" }),
+    eventType: text("event_type").notNull(),
+    outcome: text("outcome").notNull(),
+    message: text("message").notNull(),
+    deliveredAt: text("delivered_at"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("idx_admin_bot_events_created").on(table.createdAt)],
+);
+
 export const adminDevices = sqliteTable("admin_devices", {
   id: text("id").primaryKey(),
   tokenHash: text("token_hash").notNull().unique(),

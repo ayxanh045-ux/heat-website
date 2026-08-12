@@ -7,6 +7,7 @@ import { CustomerSecretsButton } from "@/components/admin/customer-secrets-butto
 import { CustomerAppToken } from "@/components/admin/customer-app-token";
 import { DemoMobileAccount } from "@/components/admin/demo-mobile-account";
 import { AdminPwaInstall } from "@/components/admin/admin-pwa-install";
+import { AdminBotPanel } from "@/components/admin/admin-bot-panel";
 import { getDb } from "@/db";
 import { customers } from "@/db/schema";
 import { requireAdminUser } from "@/lib/admin-auth";
@@ -37,6 +38,6 @@ export default async function AdminPage() {
   const user = await requireAdminUser("/admin");
   return <div className="admin-shell">
     <aside className="admin-sidebar"><Link className="admin-brand" href="/"><span>H</span><div><b>HEAT</b><small>CONTROL PLANE</small></div></Link><nav><a className="active" href="/admin"><Activity size={17} /> Provisioning</a><a href="#customers"><Users size={17} /> Müştərilər</a></nav><AdminPwaInstall /><div className="admin-user"><span>{user.displayName.slice(0, 1).toUpperCase()}</span><div><b>{user.displayName}</b><small>{user.email}</small></div><a href={chatGPTSignOutPath("/")} aria-label="Çıxış"><LogOut size={16} /></a></div></aside>
-    <main className="admin-main"><header><div><span className="admin-kicker">MULTI-TENANT ONBOARDING</span><h1>Yeni müştəri sistemi</h1><p>Məlumatları daxil edin — provisioner ayrıca və izolə edilmiş enerji monitorinq sistemi qursun.</p></div><div className="agent-state"><i /><span>Provisioner agent</span><b>Gözləyir</b></div></header><section id="customers"><CustomerList /></section><ProvisioningForm /></main>
+    <main className="admin-main"><header><div><span className="admin-kicker">MULTI-TENANT ONBOARDING</span><h1>Yeni müştəri sistemi</h1><p>Məlumatları daxil edin — provisioner ayrıca və izolə edilmiş enerji monitorinq sistemi qursun.</p></div><div className="agent-state"><i /><span>Provisioner agent</span><b>Gözləyir</b></div></header><AdminBotPanel /><section id="customers"><CustomerList /></section><ProvisioningForm /></main>
   </div>;
 }

@@ -6,12 +6,14 @@ import { decryptProvisioningInput } from "@/lib/provisioning";
 import { callTelegram, demoTelegramReply } from "@/lib/telegram";
 import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/telegram-scheduler";
 import { getAdminUser } from "@/lib/admin-auth";
-import { requestIsSameOrigin } from "@/lib/provisioning";
+import { agentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
+import { notifyAdminBot } from "@/lib/admin-bot";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  if (!requestIsSameOrigin(request) || !await getAdminUser()) {
+  const adminRequest = requestIsSameOrigin(request) && Boolean(await getAdminUser());
+  if (!adminRequest && !(await agentIsAuthorized(request))) {
     return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
   }
   const db = getDb();
@@ -38,8 +40,18 @@ export async function POST(request: Request) {
         text: demoTelegramReply("/report", values, { automatic: true }),
       });
       sent += 1;
-    } catch {
+      await notifyAdminBot({
+        customerId: vault.customerId,
+        eventType: "customer_report_delivered",
+        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nNəticə: Müştəri Telegram reportunu qəbul etdi.`,
+      });
+    } catch (error) {
       await db.delete(telegramReportDeliveries).where(eq(telegramReportDeliveries.id, id));
+      await notifyAdminBot({
+        customerId: vault.customerId,
+        eventType: "customer_report_failed",
+        message: `❌ HEAT Admin — Avtomatik report xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nXəta: ${error instanceof Error ? error.message.slice(0, 180) : "Telegram reportu göndərilmədi."}`,
+      });
     }
   }
 
