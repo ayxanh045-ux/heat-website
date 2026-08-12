@@ -60,7 +60,7 @@ export function AdminBotPanel() {
       const response = await fetch("/api/admin-bot/test", { method: "POST" });
       const payload = await response.json() as { error?: string };
       if (!response.ok) throw new Error(payload.error || "Test mesajı göndərilmədi.");
-      setResult("Test mesajı HEAT Admin Bot-a göndərildi.");
+      setResult("Demo problem xəbərdarlığı HEAT Admin Bot-a göndərildi.");
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Test mesajı göndərilmədi.");
@@ -85,7 +85,7 @@ export function AdminBotPanel() {
       </div>
       <div className="admin-bot-actions">
         <button type="button" onClick={save} disabled={saving}>{saving ? <Loader2 className="spin" size={15} /> : <ShieldCheck size={15} />} Təhlükəsiz saxla</button>
-        <button type="button" className="secondary" onClick={test} disabled={testing || !state.configured || !state.enabled}>{testing ? <Loader2 className="spin" size={15} /> : <Send size={15} />} Test mesajı göndər</button>
+        <button type="button" className="secondary" onClick={test} disabled={testing || !state.configured || !state.enabled}>{testing ? <Loader2 className="spin" size={15} /> : <Send size={15} />} Problem testini göndər</button>
         <button type="button" className="ghost" onClick={load}><RefreshCw size={15} /> Yenilə</button>
       </div>
       {result && <div className="admin-bot-result success"><CheckCircle2 size={15} /> {result}</div>}
