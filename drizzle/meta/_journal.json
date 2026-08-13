@@ -64,6 +64,13 @@
       "when": 1786531625272,
       "tag": "0008_needy_jack_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786608679609,
+      "tag": "0009_magical_black_queen",
+      "breakpoints": true
     }
   ]
 }

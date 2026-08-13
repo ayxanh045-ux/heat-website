@@ -1,7 +1,7 @@
 "use client";
 
 import { BrainCircuit, CalendarDays, ExternalLink, MessageCircle, Sparkles, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
 import { useLanguage, type Language } from "@/components/i18n";
 
@@ -115,12 +115,28 @@ export function CustomerDashboard({ customer, dailyDemoDate, customerView = fals
   const scenarios = dailyDemoScenarios(selectedDate, language);
   const current = scenarios[scenario];
   const monthTotal = monthToDateSummary(todayKey, language);
-  const selectedDayCost = Number(current.energy.replace(/[^0-9.]/g, "")) * ELECTRICITY_TARIFF_AZN_PER_KWH;
+  const [realEnergy, setRealEnergy] = useState<{ selected: { energyKwh: number; costAzn: number } | null; monthToDate: { energyKwh: number; costAzn: number } } | null>(null);
+  const [energyLoading, setEnergyLoading] = useState(customerView);
+  useEffect(() => {
+    if (!customerView) return;
+    const controller = new AbortController();
+    setEnergyLoading(true);
+    fetch(`/api/customer-energy?date=${encodeURIComponent(selectedDate)}`, { cache: "no-store", signal: controller.signal })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("energy unavailable")))
+      .then(data => setRealEnergy(data))
+      .catch(error => { if (error.name !== "AbortError") setRealEnergy(null); })
+      .finally(() => { if (!controller.signal.aborted) setEnergyLoading(false); });
+    return () => controller.abort();
+  }, [customerView, selectedDate]);
+  const selectedEnergyKwh = realEnergy?.selected?.energyKwh ?? Number(current.energy.replace(/[^0-9.]/g, ""));
+  const selectedDayCost = realEnergy?.selected?.costAzn ?? selectedEnergyKwh * ELECTRICITY_TARIFF_AZN_PER_KWH;
+  const shownMonthTotal = realEnergy?.monthToDate ?? monthTotal;
+  const selectedEnergyUnavailable = customerView && !energyLoading && (!realEnergy || !realEnergy.selected);
   return <div className={`customer-dashboard tone-${current.tone}`}>
     {!customerView && <div className="customer-demo-note"><Sparkles size={15} /><span>{dailyDemoDate ? "Gündəlik avtomatik demo" : "Demo görünüşü"}</span><p>{dailyDemoDate ? `${dailyDemoDate} tarixi üçün yaradılmış realist nümunə məlumatlarıdır. Sabah avtomatik yenilənəcək.` : "Real enerji məlumatları sistem aktiv olduqda Grafana-da görünəcək."}</p></div>}
     <div className="customer-dash-head"><div><span className="admin-kicker">ENERGY MONITORING</span><h1>{customer.customerName}</h1><p>{customer.siteName} · {customer.deviceName} · <code>{customer.deviceId}</code></p></div><div className="dashboard-controls"><label><CalendarDays size={15} /><span>Günü seç</span><input type="date" value={selectedDate} max={todayKey} onChange={(event) => setSelectedDate(event.target.value || todayKey)} /></label><div className="dash-scenarios">{Object.entries(scenarios).map(([key, value]) => <button key={key} className={scenario === key ? "active" : ""} type="button" onClick={() => setScenario(key as keyof typeof SCENARIOS)}>{value.label}</button>)}</div></div></div>
     <div className="customer-pipeline"><span><i />Shelly qoşulub</span><span><i />InfluxDB yazır</span><span><i />Grafana hazırdır</span><span><i />Telegram aktivdir</span></div>
-    <div className="customer-metrics"><div><span>Hazırkı güc</span><strong>{current.power}</strong><small>Canlı ölçü</small></div><div><span>Seçilmiş gün · {selectedDate}</span><strong>{current.energy}</strong><small>{selectedDayCost.toFixed(2)} AZN</small></div><div><span>Aylıq proqnoz</span><strong>{current.projection}</strong><small>{current.formula}</small></div><div className="month-to-date-card"><span>Bu ay indiyədək · {monthTotal.monthName} ({monthTotal.daysInMonth}/{monthTotal.day})</span><strong>{monthTotal.energyKwh.toFixed(1)} kWh</strong><small>{monthTotal.costAzn.toFixed(2)} AZN · tarif {ELECTRICITY_TARIFF_AZN_PER_KWH}</small></div><div><span>Sistem statusu</span><strong>{current.status}</strong><small>{current.tone === "ok" ? "Problem yoxdur" : "Yoxlama lazımdır"}</small></div></div>
+    <div className="customer-metrics"><div><span>Hazırkı güc</span><strong>{current.power}</strong><small>Canlı ölçü</small></div><div><span>Seçilmiş gün · {selectedDate}</span><strong>{energyLoading ? "…" : selectedEnergyUnavailable ? "Məlumat yoxdur" : `${selectedEnergyKwh.toFixed(1)} kWh`}</strong><small>{energyLoading || selectedEnergyUnavailable ? "—" : `${selectedDayCost.toFixed(2)} AZN`}</small></div><div><span>Aylıq proqnoz</span><strong>{current.projection}</strong><small>{current.formula}</small></div><div className="month-to-date-card"><span>Bu ay indiyədək · {monthTotal.monthName} ({monthTotal.daysInMonth}/{monthTotal.day})</span><strong>{energyLoading ? "…" : customerView && !realEnergy ? "Məlumat yoxdur" : `${shownMonthTotal.energyKwh.toFixed(1)} kWh`}</strong><small>{energyLoading ? "Yüklənir" : customerView && !realEnergy ? "—" : `${shownMonthTotal.costAzn.toFixed(2)} AZN · tarif ${ELECTRICITY_TARIFF_AZN_PER_KWH}`}</small></div><div><span>Sistem statusu</span><strong>{current.status}</strong><small>{current.tone === "ok" ? "Problem yoxdur" : "Yoxlama lazımdır"}</small></div></div>
     <div className="customer-dash-grid"><section className="customer-chart"><header><div><b>24 saatlıq güc</b><small>Qurulumda təyin edilmiş fazalar</small></div><div className="phase-chart-legend">{["A", "B", "C"].map((phase, index) => <span key={phase}><i />{phaseLabels[index]}</span>)}</div></header><svg viewBox="0 0 610 200" role="img" aria-label="Üç fazanın 24 saatlıq güc qrafiki"><line x1="30" y1="25" x2="590" y2="25"/><line x1="30" y1="80" x2="590" y2="80"/><line x1="30" y1="135" x2="590" y2="135"/><line x1="30" y1="180" x2="590" y2="180"/><path d={current.paths[0]}/><path d={current.paths[1]}/><path d={current.paths[2]}/><text x="30" y="197">00:00</text><text x="170" y="197">06:00</text><text x="310" y="197">12:00</text><text x="450" y="197">18:00</text><text x="555" y="197">24:00</text></svg></section><section className="customer-phases"><h2>Fazalar və xətlər</h2>{["A", "B", "C"].map((phase, index) => <div className="customer-phase" key={phase}><div><span>{phaseTitle(phase, phaseLabels[index])}</span><b>{current.phaseValues[index]}</b></div><i><b style={{ width: `${current.phases[index]}%` }} /></i></div>)}</section></div>
     <div className="customer-dash-lower"><section className="customer-insight customer-ai-advice"><span><BrainCircuit /></span><div><small>AI MƏSLƏHƏTLƏRİ · {dailyDemoDate ? "DEMO" : hasAiContext ? "MƏKAN PROFİLİ AKTİVDİR" : "ENERJİ ANALİZİ"}</small><h2>{current.insight}</h2><p>{current.detail}</p><ul>{current.aiActions.map(action => <li key={action}>{action}</li>)}</ul><em>Bu ilkin avtomatik analizdir; elektrik təhlükəsizliyi diaqnozu deyil.</em></div></section><section className="customer-telegram"><header><MessageCircle size={16} /><b>Telegram · HEAT Bot</b><i>online</i></header><div><b>{current.telegramTitle}</b><p>{current.telegram}</p><small>indi</small></div></section></div>
     {!customerView && (customer.status === "active" && customer.grafanaPort ? <a className="open-real-grafana" href={`http://localhost:${customer.grafanaPort}`}><Zap size={16} /> Real Grafana dashboardunu aç <ExternalLink size={14} /></a> : <div className="grafana-wait"><Zap size={16} /> Real Grafana keçidi qurulum tamamlandıqdan sonra aktiv olacaq.</div>)}

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const customers = sqliteTable(
   "customers",
@@ -97,6 +97,23 @@ export const customerSystemHealth = sqliteTable("customer_system_health", {
   lastHeartbeatAt: text("last_heartbeat_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   lastStatusChangeAt: text("last_status_change_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const customerDailyEnergy = sqliteTable(
+  "customer_daily_energy",
+  {
+    id: text("id").primaryKey(),
+    customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+    deviceId: text("device_id").notNull(),
+    localDate: text("local_date").notNull(),
+    energyKwh: real("energy_kwh").notNull(),
+    costAzn: real("cost_azn").notNull(),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("idx_customer_daily_energy_unique").on(table.customerId, table.deviceId, table.localDate),
+    index("idx_customer_daily_energy_lookup").on(table.customerId, table.localDate),
+  ],
+);
 
 export const adminBotEvents = sqliteTable(
   "admin_bot_events",
