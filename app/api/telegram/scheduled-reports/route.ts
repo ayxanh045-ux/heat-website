@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { customerSecrets, telegramReportDeliveries } from "@/db/schema";
+import { adminStatusDigestDeliveries, customers, customerSecrets, customerSystemHealth, telegramReportDeliveries } from "@/db/schema";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput } from "@/lib/provisioning";
 import { callTelegram, demoTelegramReply } from "@/lib/telegram";
@@ -8,6 +8,7 @@ import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/
 import { getAdminUser } from "@/lib/admin-auth";
 import { agentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
 import { notifyAdminBot } from "@/lib/admin-bot";
+import { ADMIN_DIGEST_TIMES, buildAdminHealthDigest } from "@/lib/admin-health-digest";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,33 @@ export async function POST(request: Request) {
   const db = getDb();
   const now = new Date();
   let sent = 0;
+  let adminDigestsSent = 0;
+
+  const baku = localDateAndTime(now, "Asia/Baku");
+  const adminDueTime = dueScheduledTime(baku.time, [...ADMIN_DIGEST_TIMES]);
+  if (adminDueTime) {
+    const scheduledFor = `${baku.date}T${adminDueTime}+04:00`;
+    const id = `admin-health:${scheduledFor}`;
+    const claimed = await db.insert(adminStatusDigestDeliveries).values({ id, scheduledFor })
+      .onConflictDoNothing().returning({ id: adminStatusDigestDeliveries.id });
+    if (claimed.length > 0) {
+      const systems = await db.select({
+        customerId: customers.id,
+        customerName: customers.customerName,
+        siteName: customers.siteName,
+        customerStatus: customers.status,
+        healthStatus: customerSystemHealth.status,
+        statusMessage: customerSystemHealth.statusMessage,
+        lastHeartbeatAt: customerSystemHealth.lastHeartbeatAt,
+      }).from(customers).leftJoin(customerSystemHealth, eq(customers.id, customerSystemHealth.customerId));
+      const result = await notifyAdminBot({
+        eventType: "scheduled_system_health_digest",
+        message: buildAdminHealthDigest(systems, now, adminDueTime),
+      });
+      if (result.delivered) adminDigestsSent += 1;
+      else await db.delete(adminStatusDigestDeliveries).where(eq(adminStatusDigestDeliveries.id, id));
+    }
+  }
 
   const vaults = await db.select().from(customerSecrets).where(eq(customerSecrets.customerId, DEMO_CUSTOMER.id)).limit(1);
   for (const vault of vaults) {
@@ -55,5 +83,5 @@ export async function POST(request: Request) {
     }
   }
 
-  return Response.json({ ok: true, sent }, { headers: { "cache-control": "no-store" } });
+  return Response.json({ ok: true, sent, adminDigestsSent }, { headers: { "cache-control": "no-store" } });
 }

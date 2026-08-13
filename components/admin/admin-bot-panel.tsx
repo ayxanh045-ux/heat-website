@@ -73,7 +73,7 @@ export function AdminBotPanel() {
   return <section className="admin-bot-card" id="admin-bot">
     <div className="admin-bot-head">
       <div className="admin-bot-icon"><Bot size={22} /></div>
-      <div><span className="admin-kicker">MƏRKƏZİ NƏZARƏT</span><h2>HEAT Admin Bot</h2><p>Bütün müştəri sistemlərinin problemlərini və avtomatik report nəticələrini yalnız sizə göndərir.</p></div>
+      <div><span className="admin-kicker">MƏRKƏZİ NƏZARƏT</span><h2>HEAT Admin Bot</h2><p>Bütün müştəri sistemlərinin problemlərini və avtomatik report nəticələrini yalnız sizə göndərir. Ümumi durum analizi hər gün Bakı vaxtı ilə 00:00 və 12:00-da avtomatik gəlir.</p></div>
       <div className={`admin-bot-state ${state.enabled && state.configured ? "active" : ""}`}><i />{state.enabled && state.configured ? "Aktivdir" : "Qurulmayıb"}</div>
     </div>
 

@@ -129,6 +129,16 @@ export const adminBotEvents = sqliteTable(
   (table) => [index("idx_admin_bot_events_created").on(table.createdAt)],
 );
 
+export const adminStatusDigestDeliveries = sqliteTable(
+  "admin_status_digest_deliveries",
+  {
+    id: text("id").primaryKey(),
+    scheduledFor: text("scheduled_for").notNull(),
+    deliveredAt: text("delivered_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [uniqueIndex("idx_admin_status_digest_scheduled_unique").on(table.scheduledFor)],
+);
+
 export const adminDevices = sqliteTable("admin_devices", {
   id: text("id").primaryKey(),
   tokenHash: text("token_hash").notNull().unique(),
