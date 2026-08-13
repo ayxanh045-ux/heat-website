@@ -18,7 +18,7 @@ export function AdminBotPanel() {
   const [botToken, setBotToken] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
+  const [testing, setTesting] = useState<"problem" | "health" | null>(null);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
 
@@ -54,17 +54,17 @@ export function AdminBotPanel() {
     } finally { setSaving(false); }
   }
 
-  async function test() {
-    setTesting(true); setError(""); setResult("");
+  async function test(scenario: "problem" | "health") {
+    setTesting(scenario); setError(""); setResult("");
     try {
-      const response = await fetch("/api/admin-bot/test", { method: "POST" });
+      const response = await fetch("/api/admin-bot/test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scenario }) });
       const payload = await response.json() as { error?: string };
       if (!response.ok) throw new Error(payload.error || "Test mesajı göndərilmədi.");
-      setResult("Demo problem xəbərdarlığı HEAT Admin Bot-a göndərildi.");
+      setResult(scenario === "health" ? "Ümumi durum analizi testi HEAT Admin Bot-a göndərildi." : "Demo problem xəbərdarlığı HEAT Admin Bot-a göndərildi.");
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Test mesajı göndərilmədi.");
-    } finally { setTesting(false); }
+    } finally { setTesting(null); }
   }
 
   const healthy = state.health.filter((item) => item.status === "healthy").length;
@@ -85,7 +85,8 @@ export function AdminBotPanel() {
       </div>
       <div className="admin-bot-actions">
         <button type="button" onClick={save} disabled={saving}>{saving ? <Loader2 className="spin" size={15} /> : <ShieldCheck size={15} />} Təhlükəsiz saxla</button>
-        <button type="button" className="secondary" onClick={test} disabled={testing || !state.configured || !state.enabled}>{testing ? <Loader2 className="spin" size={15} /> : <Send size={15} />} Problem testini göndər</button>
+        <button type="button" className="secondary" onClick={() => test("health")} disabled={Boolean(testing) || !state.configured || !state.enabled}>{testing === "health" ? <Loader2 className="spin" size={15} /> : <ShieldCheck size={15} />} Durum analizi testi</button>
+        <button type="button" className="secondary" onClick={() => test("problem")} disabled={Boolean(testing) || !state.configured || !state.enabled}>{testing === "problem" ? <Loader2 className="spin" size={15} /> : <Send size={15} />} Problem testini göndər</button>
         <button type="button" className="ghost" onClick={load}><RefreshCw size={15} /> Yenilə</button>
       </div>
       {result && <div className="admin-bot-result success"><CheckCircle2 size={15} /> {result}</div>}
