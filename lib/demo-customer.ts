@@ -87,6 +87,29 @@ export function demoDailyMetrics(dateKey = bakuDateKey()) {
   };
 }
 
+export function demoEnergyForDate(dateKey: string): number {
+  let seed = 2166136261;
+  for (const char of `${dateKey}-daily-energy`) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
+  seed += 0x6d2b79f5;
+  let value = seed;
+  value = Math.imul(value ^ (value >>> 15), value | 1);
+  value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+  const random = ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const busyAdjustment = weekday === 5 || weekday === 6 ? 10 : weekday === 0 ? -7 : 0;
+  return Math.max(0, 78 + busyAdjustment + (random - 0.5) * 16);
+}
+
+export function demoPeriodRows(start: Date, dayCount: number) {
+  return Array.from({ length: dayCount }, (_, index) => {
+    const day = new Date(start.getTime() + index * 86400000);
+    const dateKey = day.toISOString().slice(0, 10);
+    const energyKwh = demoEnergyForDate(dateKey);
+    return { dateKey, energyKwh, costAzn: energyKwh * ELECTRICITY_TARIFF_AZN_PER_KWH };
+  });
+}
+
 export function demoOperationalMetrics(now = new Date()) {
   const dateKey = bakuDateKey(now);
   const daily = demoDailyMetrics(dateKey);

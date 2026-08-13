@@ -29,11 +29,13 @@ export async function POST(request: Request, context: { params: Promise<{ custom
     if (!chatId || !allowed.includes(chatId)) return Response.json({ ok: true });
     const rawText = update.message?.text?.trim() ?? "";
     if (!rawText.startsWith("/")) return Response.json({ ok: true });
-    const command = rawText.split(/\s/, 1)[0].split("@", 1)[0].toLowerCase();
+    const parts = rawText.split(/\s+/);
+    const command = parts[0].split("@", 1)[0].toLowerCase();
+    const parameter = parts[1]?.trim();
     try {
       await callTelegram(botToken, "sendMessage", {
         chat_id: chatId,
-        text: demoTelegramReply(command, values),
+        text: demoTelegramReply(command, values, { parameter }),
       });
       await notifyAdminBot({
         customerId,

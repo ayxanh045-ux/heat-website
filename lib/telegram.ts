@@ -1,5 +1,5 @@
 import type { ProvisioningInput } from "@/lib/provisioning";
-import { demoOperationalMetrics } from "@/lib/demo-customer";
+import { bakuDateKey, demoEnergyForDate, demoOperationalMetrics, demoPeriodRows } from "@/lib/demo-customer";
 
 const ANALYTICS_NOTICE = "ℹ️ Qeyd: Bu, avtomatik ölçmə və analitikaya əsaslanan ilkin məlumatdır. Qəti diaqnoz deyil; qərardan əvvəl göstəriciləri yerində və lazım olduqda ixtisaslı mütəxəssislə yoxlayın.";
 
@@ -8,6 +8,9 @@ export const TELEGRAM_COMMANDS = [
   { command: "status", description: "Hazırkı enerji statusu" },
   { command: "report", description: "Ətraflı enerji hesabatı" },
   { command: "last24h", description: "Son 24 saatın hesabatı" },
+  { command: "day", description: "Seçilmiş gün: /day YYYY-MM-DD" },
+  { command: "weekly", description: "Son 7 günün cədvəli" },
+  { command: "monthly", description: "Ayın günlər üzrə cədvəli" },
   { command: "devices", description: "Qoşulmuş cihazlar" },
   { command: "help", description: "Komandaları göstər" },
 ] as const;
@@ -57,7 +60,7 @@ export async function callTelegram<T extends { ok?: boolean; description?: strin
   return result;
 }
 
-export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean } = {}): string {
+export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string } = {}): string {
   const metrics = demoOperationalMetrics();
   const phases = phaseNames(values);
   const tariff = values.electricityTariffAznPerKwh;
@@ -68,7 +71,7 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
   const automaticHeader = options.automatic
     ? `🤖 AVTOMATİK REPORT\n📅 Göndərilmə planı: gündə ${values.telegramReportCount} dəfə\n🕒 Saatlar: ${values.telegramReportTimes.split(",").join(" · ")} (${values.timezone})\n\n`
     : "";
-  const help = `🧭 HEAT — Komanda menyusu\n\n/status\nAni güc, fazalar, gərginlik və sistem vəziyyəti.\n\n/report\nBugünkü, aylıq və maliyyə göstəriciləri ilə tam hesabat.\n\n/last24h\nSon 24 saatın vaxt aralıqları, pik nöqtəsi və əvvəlki günlə müqayisəsi.\n\n/devices\nShelly cihazı, bağlantı və məlumat axınının texniki vəziyyəti.\n\nMəlumatlar yalnız siz istəyəndə göndərilir.`;
+  const help = `🧭 HEAT — Komanda menyusu\n\n/status\nAni güc, fazalar, gərginlik və sistem vəziyyəti.\n\n/report\nBugünkü, aylıq və maliyyə göstəriciləri ilə tam hesabat.\n\n/last24h\nSon 24 saatın vaxt aralıqları və müqayisəsi.\n\n/day YYYY-MM-DD\nSeçdiyiniz günün kWh və AZN məlumatı.\n\n/weekly\nSon 7 günün hər gün üzrə kWh və AZN cədvəli.\n\n/monthly\nCari ayın tamamlanmış günlər üzrə kWh və AZN cədvəli.\n\n/devices\nShelly cihazı və məlumat axınının vəziyyəti.`;
   if (command === "/start") {
     return `👋 HEAT enerji botuna xoş gəlmisiniz\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\n\n✅ Sistem işləyir\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🕒 Son yenilənmə: ${metrics.time}\n\nƏtraflı baxmaq üçün /status yazın. Bütün seçimlər üçün /help yazın.`;
   }
@@ -78,6 +81,27 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
   }
   if (command === "/devices") {
     return `🔌 HEAT — Cihaz və bağlantı\n\n🏢 Obyekt: ${values.siteName}\n📟 Cihaz: ${values.deviceName}\n🆔 Device ID: ${values.deviceId}\n🧩 Model: ${values.deviceModel}\n\n☁️ Shelly Cloud: Qoşulub\n📡 Siqnal: ${metrics.signalDbm} dBm · Yaxşı\n⏱ Fasiləsiz iş: ${metrics.uptimeDays} gün\n📥 InfluxDB məlumat axını: Aktiv\n📊 Dashboard: Hazırdır\n🔔 Telegram xəbərdarlıqları: Aktiv\n\nSon məlumat: bu gün ${metrics.time}`;
+  }
+  if (command === "/day") {
+    const selected = options.parameter ?? "";
+    const selectedDate = new Date(`${selected}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(selected) || Number.isNaN(selectedDate.getTime()) || selectedDate.toISOString().slice(0, 10) !== selected) {
+      return "Tarixi belə yazın: /day YYYY-MM-DD\nNümunə: /day 2026-08-12";
+    }
+    if (selected > bakuDateKey()) return "Gələcək tarix üçün enerji məlumatı yoxdur.";
+    const energy = demoEnergyForDate(selected);
+    return `📅 HEAT — Seçilmiş gün\n\nObyekt: ${values.siteName}\nTarix: ${selected}\n⚡ Enerji sərfiyyatı: ${energy.toFixed(2)} kWh\n💳 Məbləğ: ${(energy * tariff).toFixed(2)} AZN\nTarif: ${tariff.toFixed(4)} AZN/kWh\n\n${ANALYTICS_NOTICE}`;
+  }
+  if (command === "/weekly" || command === "/monthly") {
+    const today = new Date(`${bakuDateKey()}T00:00:00Z`);
+    const start = command === "/weekly"
+      ? new Date(today.getTime() - 7 * 86400000)
+      : new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+    const count = command === "/weekly" ? 7 : Math.max(1, today.getUTCDate() - 1);
+    const rows = demoPeriodRows(start, count);
+    const total = rows.reduce((sum, row) => sum + row.energyKwh, 0);
+    const title = command === "/weekly" ? "Həftəlik hesabat" : "Aylıq hesabat";
+    return `📊 HEAT — ${title}\n\n${rows.map((row) => `${row.dateKey} · ${row.energyKwh.toFixed(2)} kWh · ${row.costAzn.toFixed(2)} AZN`).join("\n")}\n\nCƏM: ${total.toFixed(2)} kWh · ${(total * tariff).toFixed(2)} AZN\nTarif: ${tariff.toFixed(4)} AZN/kWh\n\n${ANALYTICS_NOTICE}`;
   }
   if (command === "/report") {
     return `${automaticHeader}📊 HEAT — Ətraflı enerji hesabatı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nTarix: ${metrics.dateKey}\nTarif: ${tariff.toFixed(4)} AZN/kWh\n\nÜMUMİ GÖSTƏRİCİLƏR\n⚡ Hazırkı ümumi güc: ${metrics.powerKw} kW\n🔋 Bu gün indiyədək: ${metrics.todayEnergyKwh} kWh\n📅 Son tamamlanmış 24 saat: ${metrics.latestEnergyKwh} kWh · ${total24hCost} AZN\n\nFAZALAR — CANLI GÜC\n${phaseTitle("A", phases[0])}: ${metrics.phasePowersKw[0]} kW · ${metrics.phaseVoltagesV[0]} V · ${metrics.phaseCurrentsA[0]} A\n${phaseTitle("B", phases[1])}: ${metrics.phasePowersKw[1]} kW · ${metrics.phaseVoltagesV[1]} V · ${metrics.phaseCurrentsA[1]} A\n${phaseTitle("C", phases[2])}: ${metrics.phasePowersKw[2]} kW · ${metrics.phaseVoltagesV[2]} V · ${metrics.phaseCurrentsA[2]} A\n\nFAZALAR — SON 24 SAAT ENERJİ VƏ XƏRC\n${phaseTitle("A", phases[0])}: ${metrics.phaseEnergyKwh[0]} kWh · ${phaseCosts[0]} AZN · ümuminin ${metrics.phaseSharesPct[0]}%-i\n${phaseTitle("B", phases[1])}: ${metrics.phaseEnergyKwh[1]} kWh · ${phaseCosts[1]} AZN · ümuminin ${metrics.phaseSharesPct[1]}%-i\n${phaseTitle("C", phases[2])}: ${metrics.phaseEnergyKwh[2]} kWh · ${phaseCosts[2]} AZN · ümuminin ${metrics.phaseSharesPct[2]}%-i\nCəm: ${metrics.latestEnergyKwh} kWh · ${total24hCost} AZN\n\nBU AY\n📈 İndiyədək sərfiyyat: ${metrics.actualEnergyKwh} kWh\n📊 Günlük orta: ${metrics.averageDailyKwh} kWh\n💳 Təxmini cari xərc: ${monthActualCost} AZN\n🔮 Təxmini ay sonu proqnozu: ${metrics.projectedKwh} kWh · ${projectedCost} AZN\n\n💡 Mümkün optimallaşdırma\nƏn çox yük hazırda ${phaseTitle("A", phases[0])} xəttində görünür. Pik saatlarda yüksək güclü cihazları fərqli vaxtlarda işlətmək sərfiyyatı və fazalar arasındakı fərqi azaltmağa kömək edə bilər. Nəticə iş rejimindən asılıdır.\n\n${ANALYTICS_NOTICE}`;
