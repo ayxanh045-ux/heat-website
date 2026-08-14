@@ -30,10 +30,21 @@ export async function POST(request: Request) {
       drop_pending_updates: true,
     });
     await callTelegram(botToken, "deleteMyCommands", { scope: { type: "default" } });
+    await callTelegram(botToken, "setMyCommands", {
+      commands: TELEGRAM_COMMANDS,
+      scope: { type: "default" },
+    });
+    await callTelegram(botToken, "setChatMenuButton", {
+      menu_button: { type: "commands" },
+    });
     for (const chatId of chatIds) {
       await callTelegram(botToken, "setMyCommands", {
         commands: TELEGRAM_COMMANDS,
         scope: { type: "chat", chat_id: chatId },
+      });
+      await callTelegram(botToken, "setChatMenuButton", {
+        chat_id: chatId,
+        menu_button: { type: "commands" },
       });
     }
     return Response.json({ ok: true, commands: TELEGRAM_COMMANDS.map(({ command }) => `/${command}`) });

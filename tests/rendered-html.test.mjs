@@ -25,13 +25,14 @@ test("server-renders the HEAT product site", async () => {
 });
 
 test("includes the customer intelligence and Telegram capabilities", async () => {
-  const [dashboard, intelligence, telegram, schema, demoPage, publicDemo] = await Promise.all([
+  const [dashboard, intelligence, telegram, schema, demoPage, publicDemo, telegramSetup] = await Promise.all([
     readFile(new URL("../components/admin/customer-dashboard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/customer-energy-intelligence.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/telegram.ts", import.meta.url), "utf8"),
     readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/admin/customers/[id]/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/dashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/provisioning/telegram-webhook/route.ts", import.meta.url), "utf8"),
   ]);
   assert.match(dashboard, /CustomerEnergyIntelligence/);
   assert.match(intelligence, /Təxmini aylıq qənaət/);
@@ -48,4 +49,6 @@ test("includes the customer intelligence and Telegram capabilities", async () =>
   assert.match(publicDemo, /Monthly Savings/);
   assert.match(publicDemo, /After-Hours Loss/);
   assert.match(publicDemo, /AI ACTION PLAN/);
+  assert.match(telegramSetup, /setChatMenuButton/);
+  assert.match(telegramSetup, /scope: \{ type: "default" \}/);
 });
