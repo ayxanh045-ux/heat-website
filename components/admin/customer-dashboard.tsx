@@ -4,6 +4,7 @@ import { BrainCircuit, CalendarDays, ExternalLink, MessageCircle, Sparkles, Zap 
 import { useEffect, useState } from "react";
 import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
 import { useLanguage, type Language } from "@/components/i18n";
+import { CustomerEnergyIntelligence } from "@/components/customer-energy-intelligence";
 
 type Customer = {
   customerName: string;
@@ -140,5 +141,6 @@ export function CustomerDashboard({ customer, dailyDemoDate, customerView = fals
     <div className="customer-dash-grid"><section className="customer-chart"><header><div><b>24 saatlıq güc</b><small>Qurulumda təyin edilmiş fazalar</small></div><div className="phase-chart-legend">{["A", "B", "C"].map((phase, index) => <span key={phase}><i />{phaseLabels[index]}</span>)}</div></header><svg viewBox="0 0 610 200" role="img" aria-label="Üç fazanın 24 saatlıq güc qrafiki"><line x1="30" y1="25" x2="590" y2="25"/><line x1="30" y1="80" x2="590" y2="80"/><line x1="30" y1="135" x2="590" y2="135"/><line x1="30" y1="180" x2="590" y2="180"/><path d={current.paths[0]}/><path d={current.paths[1]}/><path d={current.paths[2]}/><text x="30" y="197">00:00</text><text x="170" y="197">06:00</text><text x="310" y="197">12:00</text><text x="450" y="197">18:00</text><text x="555" y="197">24:00</text></svg></section><section className="customer-phases"><h2>Fazalar və xətlər</h2>{["A", "B", "C"].map((phase, index) => <div className="customer-phase" key={phase}><div><span>{phaseTitle(phase, phaseLabels[index])}</span><b>{current.phaseValues[index]}</b></div><i><b style={{ width: `${current.phases[index]}%` }} /></i></div>)}</section></div>
     <div className="customer-dash-lower"><section className="customer-insight customer-ai-advice"><span><BrainCircuit /></span><div><small>AI MƏSLƏHƏTLƏRİ · {dailyDemoDate ? "DEMO" : hasAiContext ? "MƏKAN PROFİLİ AKTİVDİR" : "ENERJİ ANALİZİ"}</small><h2>{current.insight}</h2><p>{current.detail}</p><ul>{current.aiActions.map(action => <li key={action}>{action}</li>)}</ul><em>Bu ilkin avtomatik analizdir; elektrik təhlükəsizliyi diaqnozu deyil.</em></div></section><section className="customer-telegram"><header><MessageCircle size={16} /><b>Telegram · HEAT Bot</b><i>online</i></header><div><b>{current.telegramTitle}</b><p>{current.telegram}</p><small>indi</small></div></section></div>
     {!customerView && (customer.status === "active" && customer.grafanaPort ? <a className="open-real-grafana" href={`http://localhost:${customer.grafanaPort}`}><Zap size={16} /> Real Grafana dashboardunu aç <ExternalLink size={14} /></a> : <div className="grafana-wait"><Zap size={16} /> Real Grafana keçidi qurulum tamamlandıqdan sonra aktiv olacaq.</div>)}
+    {customerView && <CustomerEnergyIntelligence />}
   </div>;
 }

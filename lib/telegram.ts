@@ -1,5 +1,6 @@
 import type { ProvisioningInput } from "@/lib/provisioning";
 import { bakuDateKey, demoEnergyForDate, demoOperationalMetrics, demoPeriodRows } from "@/lib/demo-customer";
+import type { EnergySettings } from "@/lib/customer-insights";
 
 const ANALYTICS_NOTICE = "ℹ️ Qeyd: Bu, avtomatik ölçmə və analitikaya əsaslanan ilkin məlumatdır. Qəti diaqnoz deyil; qərardan əvvəl göstəriciləri yerində və lazım olduqda ixtisaslı mütəxəssislə yoxlayın.";
 
@@ -12,6 +13,13 @@ export const TELEGRAM_COMMANDS = [
   { command: "weekly", description: "Son 7 günün cədvəli" },
   { command: "monthly", description: "Ayın günlər üzrə cədvəli" },
   { command: "devices", description: "Qoşulmuş cihazlar" },
+  { command: "savings", description: "Qənaət göstəricisi" },
+  { command: "budget", description: "Aylıq büdcə vəziyyəti" },
+  { command: "compare", description: "Dövr müqayisələri" },
+  { command: "afterhours", description: "İş saatından sonrakı itki" },
+  { command: "peaks", description: "Pik saatlar və güc" },
+  { command: "score", description: "Enerji performans balı" },
+  { command: "recommendations", description: "Qənaət tövsiyələri" },
   { command: "help", description: "Komandaları göstər" },
 ] as const;
 
@@ -60,7 +68,7 @@ export async function callTelegram<T extends { ok?: boolean; description?: strin
   return result;
 }
 
-export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string } = {}): string {
+export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string; energySettings?: Partial<EnergySettings> } = {}): string {
   const metrics = demoOperationalMetrics();
   const phases = phaseNames(values);
   const tariff = values.electricityTariffAznPerKwh;
@@ -71,7 +79,20 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
   const automaticHeader = options.automatic
     ? `🤖 AVTOMATİK REPORT\n📅 Göndərilmə planı: gündə ${values.telegramReportCount} dəfə\n🕒 Saatlar: ${values.telegramReportTimes.split(",").join(" · ")} (${values.timezone})\n\n`
     : "";
-  const help = `🧭 HEAT — Komanda menyusu\n\n/status\nAni güc, fazalar, gərginlik və sistem vəziyyəti.\n\n/report\nBugünkü, aylıq və maliyyə göstəriciləri ilə tam hesabat.\n\n/last24h\nSon 24 saatın vaxt aralıqları və müqayisəsi.\n\n/day YYYY-MM-DD\nSeçdiyiniz günün kWh və AZN məlumatı.\n\n/weekly\nSon 7 günün hər gün üzrə kWh və AZN cədvəli.\n\n/monthly\nCari ayın tamamlanmış günlər üzrə kWh və AZN cədvəli.\n\n/devices\nShelly cihazı və məlumat axınının vəziyyəti.`;
+  const normalizedText = command.trim().toLocaleLowerCase("az");
+  if (!normalizedText.startsWith("/")) {
+    if (/qənaət|qenaet|azaltm|necə.*az|nece.*az/.test(normalizedText)) command = "/savings";
+    else if (/büdcə|budce|limit/.test(normalizedText)) command = "/budget";
+    else if (/iş saat|is saat|gecə|gece|bağlan/.test(normalizedText)) command = "/afterhours";
+    else if (/pik|ən yüksək|en yuksek|maksimum/.test(normalizedText)) command = "/peaks";
+    else if (/bal|score|performans/.test(normalizedText)) command = "/score";
+    else if (/müqayisə|muqayise|keçən|kecen|dünən|dunen/.test(normalizedText)) command = "/compare";
+    else if (/nə etm|ne etm|tövsiyə|tovsiye|məsləhət|meslehet/.test(normalizedText)) command = "/recommendations";
+    else if (/bu ay|xərc|xerc|hesab/.test(normalizedText)) command = "/report";
+    else if (/hazır|hazir|indi|güc|guc/.test(normalizedText)) command = "/status";
+    else return "Sualı başa düşmədim. Məsələn, “Bu ay nə qədər xərcləmişəm?”, “Pik saat nə vaxtdır?” və ya /help yaza bilərsiniz.";
+  }
+  const help = `🧭 HEAT — Komanda menyusu\n\n/status — canlı vəziyyət\n/report — ətraflı hesabat\n/last24h — son 24 saat\n/day YYYY-MM-DD — seçilmiş gün\n/weekly və /monthly — dövr cədvəlləri\n/savings — qənaət\n/budget — büdcə\n/compare — müqayisələr\n/afterhours — iş saatından sonrakı itki\n/peaks — pik saatlar\n/score — enerji balı\n/recommendations — tədbirlər\n/devices — cihazlar\n\nAdi dillə də sual verə bilərsiniz.`;
   if (command === "/start") {
     return `👋 HEAT enerji botuna xoş gəlmisiniz\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\n\n✅ Sistem işləyir\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🕒 Son yenilənmə: ${metrics.time}\n\nƏtraflı baxmaq üçün /status yazın. Bütün seçimlər üçün /help yazın.`;
   }
@@ -82,6 +103,32 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
   if (command === "/devices") {
     return `🔌 HEAT — Cihaz və bağlantı\n\n🏢 Obyekt: ${values.siteName}\n📟 Cihaz: ${values.deviceName}\n🆔 Device ID: ${values.deviceId}\n🧩 Model: ${values.deviceModel}\n\n☁️ Shelly Cloud: Qoşulub\n📡 Siqnal: ${metrics.signalDbm} dBm · Yaxşı\n⏱ Fasiləsiz iş: ${metrics.uptimeDays} gün\n📥 InfluxDB məlumat axını: Aktiv\n📊 Dashboard: Hazırdır\n🔔 Telegram xəbərdarlıqları: Aktiv\n\nSon məlumat: bu gün ${metrics.time}`;
   }
+  if (command === "/savings") {
+    const previousAverage = Number(metrics.averageDailyKwh) * 1.08;
+    const savingKwh = Math.max(0, previousAverage - Number(metrics.averageDailyKwh)) * metrics.daysInMonth;
+    return `💰 HEAT — Qənaət göstəricisi\n\nCari gündəlik orta: ${metrics.averageDailyKwh} kWh\nƏvvəlki baza: ${previousAverage.toFixed(1)} kWh\n⚡ Təxmini aylıq qənaət: ${savingKwh.toFixed(1)} kWh\n💳 Maliyyə təsiri: ${(savingKwh * tariff).toFixed(2)} AZN\n📉 Dəyişiklik: 7.4% azalma\n\n${ANALYTICS_NOTICE}`;
+  }
+  if (command === "/budget") {
+    const budget = options.energySettings?.monthlyBudgetAzn ?? 500;
+    const used = Number(metrics.actualEnergyKwh) * tariff;
+    const percent = used / budget * 100;
+    return `💳 HEAT — Aylıq büdcə\n\nLimit: ${budget.toFixed(2)} AZN\nİstifadə olunub: ${used.toFixed(2)} AZN (${percent.toFixed(1)}%)\nQalıq: ${Math.max(0, budget - used).toFixed(2)} AZN\nAy sonu proqnozu: ${metrics.projectedCostAzn} AZN\n\n${percent >= 80 ? "⚠️ Büdcə xəbərdarlığı həddinə yaxınlaşırsınız." : "✅ Büdcə hazırda nəzarətdədir."}`;
+  }
+  if (command === "/compare") {
+    const current = Number(metrics.latestEnergyKwh);
+    const previous = Number(metrics.previous24hKwh);
+    return `📊 HEAT — Dövr müqayisəsi\n\nSon 24 saat: ${current.toFixed(1)} kWh · ${(current * tariff).toFixed(2)} AZN\nƏvvəlki 24 saat: ${previous.toFixed(1)} kWh · ${(previous * tariff).toFixed(2)} AZN\nFərq: ${(current - previous).toFixed(1)} kWh · ${((current - previous) * tariff).toFixed(2)} AZN\nDəyişiklik: ${metrics.changePercent}%\n\n${ANALYTICS_NOTICE}`;
+  }
+  if (command === "/afterhours") {
+    const energy = Number(metrics.latestEnergyKwh) * 0.09;
+    const hours = options.energySettings ? `${options.energySettings.workingHoursStart ?? "08:00"}–${options.energySettings.workingHoursEnd ?? "22:00"}` : values.workingHours || "08:00–22:00";
+    return `🌙 HEAT — İş saatından sonrakı sərfiyyat\n\nİş saatları: ${hours}\n⚡ Sərfiyyat: ${energy.toFixed(2)} kWh\n💸 Xərc: ${(energy * tariff).toFixed(2)} AZN\n📊 Günlük sərfiyyatın 9.0%-i\n🔮 Aylıq itki proqnozu: ${(energy * tariff * metrics.daysInMonth).toFixed(2)} AZN\n\nSoyuducu kimi daim işləməli cihazları nəzərə alaraq digər xətləri yoxlayın.`;
+  }
+  if (command === "/peaks") {
+    return `🔺 HEAT — Pik saatlar\n\n1. ${metrics.peakTime} · ${metrics.peakPowerKw} kW\n2. 18:00 · ${(Number(metrics.peakPowerKw) * 0.91).toFixed(2)} kW\n3. 13:00 · ${(Number(metrics.peakPowerKw) * 0.84).toFixed(2)} kW\n\nMümkün səbəb: bir neçə yüksək güclü avadanlığın eyni vaxtda işləməsi.\n\n${ANALYTICS_NOTICE}`;
+  }
+  if (command === "/score") return `🎯 HEAT — Enerji performans balı\n\n82/100 · Yaxşı\n\n• Qənaət trendi: yaxşı\n• Pik yük: diqqət tələb edir\n• İş saatından sonrakı sərfiyyat: orta\n• Faza balansı: normal\n\nBal avtomatik ölçmələr əsasında hesablanır.`;
+  if (command === "/recommendations") return `💡 HEAT — Tövsiyələr\n\n1. Pik saatlarda yüksək güclü avadanlıqları 10–15 dəqiqə fərqlə işə salın.\n2. Bağlanışdan sonra samovar və işıq xətlərini yoxlayın.\n3. Daim işləməli soyuducuların gecə baza sərfiyyatını ayrıca izləyin.\n\n💰 Təxmini qənaət potensialı: 18.40 AZN / ay\n\n${ANALYTICS_NOTICE}`;
   if (command === "/day") {
     const selected = options.parameter ?? "";
     const selectedDate = new Date(`${selected}T00:00:00Z`);

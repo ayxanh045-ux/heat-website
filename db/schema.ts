@@ -115,6 +115,40 @@ export const customerDailyEnergy = sqliteTable(
   ],
 );
 
+export const customerEnergySettings = sqliteTable("customer_energy_settings", {
+  customerId: text("customer_id").primaryKey().references(() => customers.id, { onDelete: "cascade" }),
+  monthlyBudgetAzn: real("monthly_budget_azn").notNull().default(500),
+  workingHoursStart: text("working_hours_start").notNull().default("08:00"),
+  workingHoursEnd: text("working_hours_end").notNull().default("22:00"),
+  peakThresholdKw: real("peak_threshold_kw").notNull().default(10),
+  budgetWarningPercent: integer("budget_warning_percent").notNull().default(80),
+  alertBudget: integer("alert_budget", { mode: "boolean" }).notNull().default(true),
+  alertAfterHours: integer("alert_after_hours", { mode: "boolean" }).notNull().default(true),
+  alertPeak: integer("alert_peak", { mode: "boolean" }).notNull().default(true),
+  alertAnomaly: integer("alert_anomaly", { mode: "boolean" }).notNull().default(true),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const customerEnergySnapshots = sqliteTable(
+  "customer_energy_snapshots",
+  {
+    id: text("id").primaryKey(),
+    customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+    deviceId: text("device_id").notNull(),
+    measuredAt: text("measured_at").notNull(),
+    totalPowerKw: real("total_power_kw").notNull(),
+    phaseAKw: real("phase_a_kw"),
+    phaseBKw: real("phase_b_kw"),
+    phaseCKw: real("phase_c_kw"),
+    totalEnergyKwh: real("total_energy_kwh"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("idx_customer_energy_snapshots_unique").on(table.customerId, table.deviceId, table.measuredAt),
+    index("idx_customer_energy_snapshots_lookup").on(table.customerId, table.measuredAt),
+  ],
+);
+
 export const adminBotEvents = sqliteTable(
   "admin_bot_events",
   {

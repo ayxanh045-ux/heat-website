@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { customerSecrets } from "@/db/schema";
+import { customerEnergySettings, customerSecrets } from "@/db/schema";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput } from "@/lib/provisioning";
 import { allowedTelegramChatIds, callTelegram, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
@@ -28,14 +28,14 @@ export async function POST(request: Request, context: { params: Promise<{ custom
     const allowed = allowedTelegramChatIds(values);
     if (!chatId || !allowed.includes(chatId)) return Response.json({ ok: true });
     const rawText = update.message?.text?.trim() ?? "";
-    if (!rawText.startsWith("/")) return Response.json({ ok: true });
     const parts = rawText.split(/\s+/);
-    const command = parts[0].split("@", 1)[0].toLowerCase();
+    const command = rawText.startsWith("/") ? parts[0].split("@", 1)[0].toLowerCase() : rawText;
     const parameter = parts[1]?.trim();
     try {
+      const [energySettings] = await getDb().select().from(customerEnergySettings).where(eq(customerEnergySettings.customerId, customerId)).limit(1);
       await callTelegram(botToken, "sendMessage", {
         chat_id: chatId,
-        text: demoTelegramReply(command, values, { parameter }),
+        text: demoTelegramReply(command, values, { parameter, energySettings: energySettings ?? undefined }),
       });
       await notifyAdminBot({
         customerId,
