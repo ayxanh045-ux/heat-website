@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Activity, Bell, ChartNoAxesCombined, ChevronDown, CircleGauge, LayoutDashboard, MapPin, Settings, SlidersHorizontal, Zap } from "lucide-react";
+import { Activity, Bell, BrainCircuit, ChartNoAxesCombined, ChevronDown, CircleGauge, Clock3, LayoutDashboard, MapPin, PiggyBank, Settings, SlidersHorizontal, WalletCards, Zap } from "lucide-react";
 import { DemoBadge } from "./ui";
 
 const baseData = [
@@ -74,7 +74,14 @@ export function MainDashboard() {
           <div className="stat-card featured"><div><span>Real-Time Power</span><b className="normal">NORMAL</b></div><Gauge value={power} large /><small>Range 0 — 50 kW</small></div>
           {[['Today','284.7','kWh','+3.2%'],["Today's Cost",'31.42','AZN','+1.8%'],['Monthly Usage','8,420','kWh','-4.3%'],['Monthly Estimate','1,124','AZN','On track'],['Power Factor','0.97','','Excellent']].map(([label,val,unit,trend]) => <div className="stat-card" key={label}><span>{label}</span><strong>{val} <small>{unit}</small></strong><em className={trend.startsWith('-') || trend === 'Excellent' ? 'good' : ''}>{trend}</em></div>)}
         </div>
+        <div className="demo-intelligence-grid">
+          <div><span><PiggyBank size={13}/> Monthly Savings</span><strong>37.80 <small>AZN</small></strong><em>−8.4% energy</em></div>
+          <div><span><WalletCards size={13}/> Budget Used</span><strong>324 <small>/ 500 AZN</small></strong><i><b /></i><em>64.8% · On track</em></div>
+          <div><span><Clock3 size={13}/> After-Hours Loss</span><strong>12.6 <small>kWh</small></strong><em>1.58 AZN</em></div>
+          <div className="demo-score"><span><CircleGauge size={13}/> Energy Score</span><strong>82<small>/100</small></strong><em>Good</em></div>
+        </div>
         <div className="dashboard-lower"><div className="dash-chart-card"><EnergyChart /></div><div className="cost-card"><div><span>Energy Cost</span><small>Current billing cycle</small></div><dl><div><dt>Today</dt><dd>31.42 AZN</dd></div><div><dt>This Month</dt><dd>824.60 AZN</dd></div><div><dt>Projected</dt><dd>1,124 AZN</dd></div></dl><div className="cost-track"><i /></div><small>73% of projected monthly cost</small></div></div>
+        <div className="demo-ai-strip"><BrainCircuit size={16}/><div><small>AI ACTION PLAN</small><b>Shift high-power equipment starts by 10–15 minutes</b></div><span>Potential saving: 24.60 AZN</span></div>
       </div>
     </div>
   );

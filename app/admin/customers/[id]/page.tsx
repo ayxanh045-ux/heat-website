@@ -14,7 +14,7 @@ async function CustomerDashboardGate({ customerId }: { customerId: string }) {
   await requireAdminUser(returnTo);
   if (customerId === DEMO_CUSTOMER.id) {
     const profile = await getCustomerDisplayProfile(customerId);
-    return <main className="customer-dashboard-page"><a className="dashboard-back" href="/admin"><ArrowLeft size={15} /> Müştəri siyahısına qayıt</a><CustomerDashboard customer={DEMO_CUSTOMER} dailyDemoDate={bakuDateKey()} phaseLabels={profile.phaseLabels} hasAiContext={profile.hasAiContext} /></main>;
+    return <main className="customer-dashboard-page"><a className="dashboard-back" href="/admin"><ArrowLeft size={15} /> Müştəri siyahısına qayıt</a><CustomerDashboard customer={DEMO_CUSTOMER} dailyDemoDate={bakuDateKey()} intelligenceDemo phaseLabels={profile.phaseLabels} hasAiContext={profile.hasAiContext} /></main>;
   }
   const [customer] = await getDb().select().from(customers).where(eq(customers.id, customerId)).limit(1);
   if (!customer) return <main className="customer-dashboard-page"><a className="dashboard-back" href="/admin"><ArrowLeft size={15} /> Admin panelinə qayıt</a><div className="dashboard-not-found"><h1>Müştəri tapılmadı</h1><p>Bu qeyd silinib və ya ünvan düzgün deyil.</p></div></main>;

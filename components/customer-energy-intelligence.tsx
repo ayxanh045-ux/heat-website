@@ -18,7 +18,7 @@ type Insights = {
 
 const comparisonLabels = { daily: "Bu gün / dünən", weekly: "Son 7 gün / əvvəlki 7 gün", monthly: "Bu ay / keçən ay" } as const;
 
-export function CustomerEnergyIntelligence() {
+export function CustomerEnergyIntelligence({ demoMode = false }: { demoMode?: boolean }) {
   const [insights, setInsights] = useState<Insights | null>(null);
   const [settings, setSettings] = useState<EnergySettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ export function CustomerEnergyIntelligence() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/customer-insights", { cache: "no-store" });
+      const response = await fetch(demoMode ? "/api/demo-insights" : "/api/customer-insights", { cache: "no-store" });
       if (!response.ok) throw new Error("Analitika yüklənmədi.");
       const data = await response.json() as Insights;
       setInsights(data);
@@ -36,7 +36,7 @@ export function CustomerEnergyIntelligence() {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Analitika yüklənmədi.");
     } finally { setLoading(false); }
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
@@ -77,13 +77,13 @@ export function CustomerEnergyIntelligence() {
 
     <section className="energy-action-panel"><span><BrainCircuit size={20}/></span><div><small>AI ƏSASLI FƏALİYYƏT PLANI</small><h3>Təxmini qənaət potensialı: {insights.analysis.potentialSavingAzn.toFixed(2)} AZN</h3><ul>{insights.analysis.recommendations.map((item) => <li key={item}>{item}</li>)}</ul><em>Bu avtomatik analitikadır; elektrik təhlükəsizliyi diaqnozu deyil.</em></div></section>
 
-    <details className="energy-settings"><summary><span><Settings2 size={16}/><b>Monitorinq və xəbərdarlıq parametrləri</b></span><small>Büdcə, iş saatları və hədlər</small></summary><div className="energy-settings-grid">
-      <label><span>Aylıq büdcə (AZN)</span><input type="number" min="10" step="10" value={settings.monthlyBudgetAzn} onChange={(event) => update("monthlyBudgetAzn", Number(event.target.value))}/></label>
-      <label><span>Büdcə xəbərdarlığı (%)</span><input type="number" min="50" max="100" value={settings.budgetWarningPercent} onChange={(event) => update("budgetWarningPercent", Number(event.target.value))}/></label>
-      <label><span>İşin başlama saatı</span><input type="time" value={settings.workingHoursStart} onChange={(event) => update("workingHoursStart", event.target.value)}/></label>
-      <label><span>İşin bitmə saatı</span><input type="time" value={settings.workingHoursEnd} onChange={(event) => update("workingHoursEnd", event.target.value)}/></label>
-      <label><span>Pik güc həddi (kW)</span><input type="number" min="0.1" step="0.1" value={settings.peakThresholdKw} onChange={(event) => update("peakThresholdKw", Number(event.target.value))}/></label>
-      <div className="energy-alert-switches"><b><BellRing size={15}/> Telegram xəbərdarlıqları</b>{([['alertBudget','Büdcə limiti'],['alertAfterHours','İş saatından sonrakı sərfiyyat'],['alertPeak','Pik güc'],['alertAnomaly','Anomaliya']] as [keyof EnergySettings,string][]).map(([key,label]) => <label key={key}><input type="checkbox" checked={Boolean(settings[key])} onChange={(event) => update(key, event.target.checked as never)}/><i/><span>{label}</span></label>)}</div>
-    </div><footer><p>{message}</p><button type="button" disabled={saving} onClick={save}><Save size={15}/>{saving ? "Saxlanılır…" : "Parametrləri saxla"}</button></footer></details>
+    <details className="energy-settings"><summary><span><Settings2 size={16}/><b>Monitorinq və xəbərdarlıq parametrləri</b></span><small>{demoMode ? "Demo parametrləri · yalnız baxış" : "Büdcə, iş saatları və hədlər"}</small></summary><div className="energy-settings-grid">
+      <label><span>Aylıq büdcə (AZN)</span><input disabled={demoMode} type="number" min="10" step="10" value={settings.monthlyBudgetAzn} onChange={(event) => update("monthlyBudgetAzn", Number(event.target.value))}/></label>
+      <label><span>Büdcə xəbərdarlığı (%)</span><input disabled={demoMode} type="number" min="50" max="100" value={settings.budgetWarningPercent} onChange={(event) => update("budgetWarningPercent", Number(event.target.value))}/></label>
+      <label><span>İşin başlama saatı</span><input disabled={demoMode} type="time" value={settings.workingHoursStart} onChange={(event) => update("workingHoursStart", event.target.value)}/></label>
+      <label><span>İşin bitmə saatı</span><input disabled={demoMode} type="time" value={settings.workingHoursEnd} onChange={(event) => update("workingHoursEnd", event.target.value)}/></label>
+      <label><span>Pik güc həddi (kW)</span><input disabled={demoMode} type="number" min="0.1" step="0.1" value={settings.peakThresholdKw} onChange={(event) => update("peakThresholdKw", Number(event.target.value))}/></label>
+      <div className="energy-alert-switches"><b><BellRing size={15}/> Telegram xəbərdarlıqları</b>{([['alertBudget','Büdcə limiti'],['alertAfterHours','İş saatından sonrakı sərfiyyat'],['alertPeak','Pik güc'],['alertAnomaly','Anomaliya']] as [keyof EnergySettings,string][]).map(([key,label]) => <label key={key}><input disabled={demoMode} type="checkbox" checked={Boolean(settings[key])} onChange={(event) => update(key, event.target.checked as never)}/><i/><span>{label}</span></label>)}</div>
+    </div><footer><p>{demoMode ? "Demo rejimində dəyişikliklər saxlanılmır." : message}</p>{!demoMode && <button type="button" disabled={saving} onClick={save}><Save size={15}/>{saving ? "Saxlanılır…" : "Parametrləri saxla"}</button>}</footer></details>
   </section>;
 }

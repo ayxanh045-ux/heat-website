@@ -25,11 +25,13 @@ test("server-renders the HEAT product site", async () => {
 });
 
 test("includes the customer intelligence and Telegram capabilities", async () => {
-  const [dashboard, intelligence, telegram, schema] = await Promise.all([
+  const [dashboard, intelligence, telegram, schema, demoPage, publicDemo] = await Promise.all([
     readFile(new URL("../components/admin/customer-dashboard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/customer-energy-intelligence.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/telegram.ts", import.meta.url), "utf8"),
     readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/customers/[id]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/dashboard.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(dashboard, /CustomerEnergyIntelligence/);
   assert.match(intelligence, /Təxmini aylıq qənaət/);
@@ -40,4 +42,8 @@ test("includes the customer intelligence and Telegram capabilities", async () =>
   }
   assert.match(schema, /customer_energy_settings/);
   assert.match(schema, /customer_energy_snapshots/);
+  assert.match(demoPage, /intelligenceDemo/);
+  assert.match(publicDemo, /Monthly Savings/);
+  assert.match(publicDemo, /After-Hours Loss/);
+  assert.match(publicDemo, /AI ACTION PLAN/);
 });
