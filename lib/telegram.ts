@@ -82,25 +82,8 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
   const automaticHeader = options.automatic
     ? `🤖 AVTOMATİK REPORT\n📅 Göndərilmə planı: gündə ${values.telegramReportCount} dəfə\n🕒 Saatlar: ${values.telegramReportTimes.split(",").join(" · ")} (${values.timezone})\n\n`
     : "";
-  const normalizedText = command.trim().toLocaleLowerCase("az");
-  if (!normalizedText.startsWith("/")) {
-    if (/(bu ay|aylıq).*(xərc|xerc|ödəniş|odenish|hesab)|(xərc|xerc|hesab).*(bu ay|aylıq)/.test(normalizedText)) return `💳 Bu ay indiyədək xərc: ${monthActualCost} AZN`;
-    if (/(bu gün|bugün|bugun).*(xərc|xerc)|(xərc|xerc).*(bu gün|bugün|bugun)/.test(normalizedText)) return `💳 Bu gün xərc: ${(Number(metrics.todayEnergyKwh) * tariff).toFixed(2)} AZN`;
-    if (/(bu gün|bugün|bugun).*(sərfiyyat|serfiyyat|enerji|kwh)|(sərfiyyat|serfiyyat|enerji).*(bu gün|bugün|bugun)/.test(normalizedText)) return `⚡ Bu gün enerji sərfiyyatı: ${metrics.todayEnergyKwh} kWh`;
-    if (/(hazırkı|hazirki|indi).*(güc|guc)|(güc|guc).*(hazırkı|hazirki|indi)/.test(normalizedText)) return `⚡ Hazırkı güc: ${metrics.powerKw} kW`;
-    if (/qənaət|qenaet|azaltm/.test(normalizedText)) {
-      const previousAverage = Number(metrics.averageDailyKwh) * 1.08;
-      const savingKwh = Math.max(0, previousAverage - Number(metrics.averageDailyKwh)) * metrics.daysInMonth;
-      return `💰 Təxmini aylıq qənaət: ${(savingKwh * tariff).toFixed(2)} AZN`;
-    }
-    if (/büdcə|budce|limit/.test(normalizedText)) return `💳 Aylıq büdcə limiti: ${(options.energySettings?.monthlyBudgetAzn ?? 500).toFixed(2)} AZN`;
-    if (/iş saat|is saat/.test(normalizedText)) return `🕒 İş saatları: ${options.energySettings?.workingHoursStart ?? "08:00"}–${options.energySettings?.workingHoursEnd ?? "22:00"}`;
-    if (/pik|ən yüksək|en yuksek|maksimum/.test(normalizedText)) return `🔺 Pik güc: ${metrics.peakPowerKw} kW · ${metrics.peakTime}`;
-    if (/bal|score|performans/.test(normalizedText)) return "🎯 Enerji performans balı: 82/100";
-    if (/əlaqə|elaqe|contact|telefon|email|e-poçt|epoct/.test(normalizedText)) command = "/contact";
-    else return "⚠️ Bu mövzu üzrə məlumat yoxdur.\n\nEnerji məlumatları üçün /help və ya Telegram menyusundakı komandaları istifadə edin. Əlaqə üçün /contact yazın.";
-  }
-  const help = `🧭 HEAT — Komanda menyusu\n\n/status — canlı vəziyyət\n/report — ətraflı hesabat\n/last24h — son 24 saat\n/day YYYY-MM-DD — seçilmiş gün\n/weekly və /monthly — dövr cədvəlləri\n/savings — qənaət\n/budget — büdcə vəziyyəti\n/setbudget 750 — aylıq büdcəni dəyiş\n/compare — müqayisələr\n/afterhours — iş saatından sonrakı itki\n/sethours 09:00 23:00 — iş saatlarını dəyiş\n/peaks — pik saatlar\n/score — enerji balı\n/recommendations — tədbirlər\n/devices — cihazlar\n/contact — HEAT ilə əlaqə\n\nAdi suallara yalnız soruşulan göstərici ilə qısa cavab verilir.`;
+  if (!command.trim().startsWith("/")) command = "/help";
+  const help = `🧭 HEAT — Komanda menyusu\n\n/status — canlı vəziyyət\n/report — ətraflı hesabat\n/last24h — son 24 saat\n/day YYYY-MM-DD — seçilmiş gün\n/weekly və /monthly — dövr cədvəlləri\n/savings — qənaət\n/budget — büdcə vəziyyəti\n/setbudget 750 — aylıq büdcəni dəyiş\n/compare — müqayisələr\n/afterhours — iş saatından sonrakı itki\n/sethours 09:00 23:00 — iş saatlarını dəyiş\n/peaks — pik saatlar\n/score — enerji balı\n/recommendations — tədbirlər\n/devices — cihazlar\n/contact — HEAT ilə əlaqə\n\nMəlumat almaq üçün menyudan uyğun komandanı seçin.`;
   if (command === "/start") {
     return `👋 HEAT enerji botuna xoş gəlmisiniz\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\n\n✅ Sistem işləyir\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🕒 Son yenilənmə: ${metrics.time}\n\nƏtraflı baxmaq üçün /status yazın. Bütün seçimlər üçün /help yazın.`;
   }

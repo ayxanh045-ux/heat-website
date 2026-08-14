@@ -51,7 +51,7 @@ test("includes the customer intelligence and Telegram capabilities", async () =>
   assert.match(publicDemo, /AI ACTION PLAN/);
   assert.match(telegramSetup, /setChatMenuButton/);
   assert.match(telegramSetup, /scope: \{ type: "default" \}/);
-  assert.match(telegram, /Bu ay indiyədək xərc/);
-  assert.match(telegram, /Bu mövzu üzrə məlumat yoxdur/);
+  assert.match(telegram, /if \(!command\.trim\(\)\.startsWith\("\/"\)\) command = "\/help"/);
+  assert.match(telegram, /Məlumat almaq üçün menyudan uyğun komandanı seçin/);
   assert.match(telegram, /heat\.co2026@gmail\.com/);
 });
