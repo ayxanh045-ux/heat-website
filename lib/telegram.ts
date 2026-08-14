@@ -15,8 +15,10 @@ export const TELEGRAM_COMMANDS = [
   { command: "devices", description: "Qoşulmuş cihazlar" },
   { command: "savings", description: "Qənaət göstəricisi" },
   { command: "budget", description: "Aylıq büdcə vəziyyəti" },
+  { command: "setbudget", description: "Büdcəni dəyiş: /setbudget 750" },
   { command: "compare", description: "Dövr müqayisələri" },
   { command: "afterhours", description: "İş saatından sonrakı itki" },
+  { command: "sethours", description: "İş saatlarını dəyiş: /sethours 09:00 23:00" },
   { command: "peaks", description: "Pik saatlar və güc" },
   { command: "score", description: "Enerji performans balı" },
   { command: "recommendations", description: "Qənaət tövsiyələri" },
@@ -92,7 +94,7 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
     else if (/hazır|hazir|indi|güc|guc/.test(normalizedText)) command = "/status";
     else return "Sualı başa düşmədim. Məsələn, “Bu ay nə qədər xərcləmişəm?”, “Pik saat nə vaxtdır?” və ya /help yaza bilərsiniz.";
   }
-  const help = `🧭 HEAT — Komanda menyusu\n\n/status — canlı vəziyyət\n/report — ətraflı hesabat\n/last24h — son 24 saat\n/day YYYY-MM-DD — seçilmiş gün\n/weekly və /monthly — dövr cədvəlləri\n/savings — qənaət\n/budget — büdcə\n/compare — müqayisələr\n/afterhours — iş saatından sonrakı itki\n/peaks — pik saatlar\n/score — enerji balı\n/recommendations — tədbirlər\n/devices — cihazlar\n\nAdi dillə də sual verə bilərsiniz.`;
+  const help = `🧭 HEAT — Komanda menyusu\n\n/status — canlı vəziyyət\n/report — ətraflı hesabat\n/last24h — son 24 saat\n/day YYYY-MM-DD — seçilmiş gün\n/weekly və /monthly — dövr cədvəlləri\n/savings — qənaət\n/budget — büdcə vəziyyəti\n/setbudget 750 — aylıq büdcəni dəyiş\n/compare — müqayisələr\n/afterhours — iş saatından sonrakı itki\n/sethours 09:00 23:00 — iş saatlarını dəyiş\n/peaks — pik saatlar\n/score — enerji balı\n/recommendations — tədbirlər\n/devices — cihazlar\n\nDəyişikliklər həm Telegram-da, həm də müştəri kabinetində eyni anda tətbiq olunur.`;
   if (command === "/start") {
     return `👋 HEAT enerji botuna xoş gəlmisiniz\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\n\n✅ Sistem işləyir\n⚡ Hazırkı güc: ${metrics.powerKw} kW\n🕒 Son yenilənmə: ${metrics.time}\n\nƏtraflı baxmaq üçün /status yazın. Bütün seçimlər üçün /help yazın.`;
   }

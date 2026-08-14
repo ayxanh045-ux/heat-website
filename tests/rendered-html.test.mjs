@@ -37,11 +37,13 @@ test("includes the customer intelligence and Telegram capabilities", async () =>
   assert.match(intelligence, /Təxmini aylıq qənaət/);
   assert.match(intelligence, /İş saatından sonrakı itki/);
   assert.match(intelligence, /Enerji və qənaət mərkəzi/);
-  for (const command of ["savings", "budget", "compare", "afterhours", "peaks", "score", "recommendations"]) {
+  for (const command of ["savings", "budget", "setbudget", "compare", "afterhours", "sethours", "peaks", "score", "recommendations"]) {
     assert.match(telegram, new RegExp(`command: "${command}"`));
   }
   assert.match(schema, /customer_energy_settings/);
   assert.match(schema, /customer_energy_snapshots/);
+  assert.match(intelligence, /\/setbudget 750/);
+  assert.match(intelligence, /\/sethours 09:00 23:00/);
   assert.match(demoPage, /intelligenceDemo/);
   assert.match(publicDemo, /Monthly Savings/);
   assert.match(publicDemo, /After-Hours Loss/);

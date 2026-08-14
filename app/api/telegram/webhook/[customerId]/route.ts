@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { customerEnergySettings, customerSecrets } from "@/db/schema";
-import { DEMO_CUSTOMER } from "@/lib/demo-customer";
+import { customerSecrets } from "@/db/schema";
 import { decryptProvisioningInput } from "@/lib/provisioning";
 import { allowedTelegramChatIds, callTelegram, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
 import { notifyAdminBot } from "@/lib/admin-bot";
+import { getCustomerEnergySettings, parseBudgetAmount, parseWorkingHours, updateCustomerEnergySettings } from "@/lib/customer-energy-settings";
 
 type TelegramUpdate = {
   message?: { chat?: { id?: number | string }; text?: string };
@@ -13,7 +13,6 @@ type TelegramUpdate = {
 export async function POST(request: Request, context: { params: Promise<{ customerId: string }> }) {
   try {
     const { customerId } = await context.params;
-    if (customerId !== DEMO_CUSTOMER.id) return Response.json({ ok: true });
     const [vault] = await getDb().select().from(customerSecrets).where(eq(customerSecrets.customerId, customerId)).limit(1);
     if (!vault) return Response.json({ ok: true });
     const values = await decryptProvisioningInput(vault.encryptedPayload);
@@ -32,21 +31,38 @@ export async function POST(request: Request, context: { params: Promise<{ custom
     const command = rawText.startsWith("/") ? parts[0].split("@", 1)[0].toLowerCase() : rawText;
     const parameter = parts[1]?.trim();
     try {
-      const [energySettings] = await getDb().select().from(customerEnergySettings).where(eq(customerEnergySettings.customerId, customerId)).limit(1);
+      let energySettings = await getCustomerEnergySettings(customerId);
+      let reply: string;
+      if (command === "/setbudget") {
+        const monthlyBudgetAzn = parseBudgetAmount(parts[1] ?? "");
+        energySettings = await updateCustomerEnergySettings(customerId, { monthlyBudgetAzn });
+        reply = `✅ Aylıq büdcə yeniləndi\n\nYeni limit: ${energySettings.monthlyBudgetAzn.toFixed(2)} AZN\n\nBu dəyişiklik müştəri kabinetində və bütün büdcə hesablamalarında dərhal tətbiq olundu. /budget ilə vəziyyətə baxa bilərsiniz.`;
+      } else if (command === "/sethours") {
+        const hours = parseWorkingHours(parts[1] ?? "", parts[2] ?? "");
+        energySettings = await updateCustomerEnergySettings(customerId, hours);
+        reply = `✅ İş saatları yeniləndi\n\nYeni iş rejimi: ${energySettings.workingHoursStart}–${energySettings.workingHoursEnd}\n\nİş saatından sonrakı sərfiyyat bundan sonra bu rejimə əsasən hesablanacaq. /afterhours ilə baxa bilərsiniz.`;
+      } else {
+        reply = demoTelegramReply(command, values, { parameter, energySettings });
+      }
       await callTelegram(botToken, "sendMessage", {
         chat_id: chatId,
-        text: demoTelegramReply(command, values, { parameter, energySettings: energySettings ?? undefined }),
+        text: reply,
       });
       await notifyAdminBot({
         customerId,
         eventType: "customer_command_used",
-        message: `📲 HEAT Admin — Müştəri Telegram komandası işlətdi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nNəticə: Cavab uğurla göndərildi.\nVaxt: ${new Date().toISOString()}`,
+        message: `📲 HEAT Admin — Müştəri Telegram komandası işlətdi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nNəticə: ${command === "/setbudget" || command === "/sethours" ? "Ayar yeniləndi." : "Cavab uğurla göndərildi."}\nVaxt: ${new Date().toISOString()}`,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Komanda icra edilmədi.";
+      await callTelegram(botToken, "sendMessage", {
+        chat_id: chatId,
+        text: `❌ ${errorMessage}`,
+      }).catch(() => undefined);
       await notifyAdminBot({
         customerId,
         eventType: "customer_command_failed",
-        message: `❌ HEAT Admin — Müştəri Telegram komandasında xəta\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nXəta: ${error instanceof Error ? error.message.slice(0, 180) : "Cavab göndərilmədi."}\nVaxt: ${new Date().toISOString()}`,
+        message: `❌ HEAT Admin — Müştəri Telegram komandasında xəta\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nXəta: ${errorMessage.slice(0, 180)}\nVaxt: ${new Date().toISOString()}`,
       });
     }
     return Response.json({ ok: true });
