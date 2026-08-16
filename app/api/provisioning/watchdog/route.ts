@@ -6,6 +6,64 @@ import { agentIsAuthorized } from "@/lib/provisioning";
 
 const SOURCE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+function formatBakuTime(date = new Date()) {
+  return new Intl.DateTimeFormat("az-AZ", {
+    timeZone: "Asia/Baku",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).format(date);
+}
+
+function buildWatchdogMessage({
+  recovered,
+  sourceId,
+  detail,
+}: {
+  recovered: boolean;
+  sourceId: string;
+  detail: string;
+}) {
+  const time = formatBakuTime();
+  if (recovered) {
+    return `✅ HEAT Admin — Mərkəzi sistem bərpa olundu
+
+Server: ${sourceId}
+Vaxt (Bakı): ${time}
+${detail ? `Yoxlama nəticəsi: ${detail}\n` : ""}
+NƏ DÜZƏLDİ?
+• Mərkəzi provisioner yenidən işləyir.
+• Müştəri sistemlərinin avtomatik vəziyyət yoxlamaları bərpa olunub.
+• Yeni qurulum tapşırıqları və planlı hesabat yoxlamaları yenidən icra olunur.
+
+NƏ ETMƏLİ?
+Əlavə müdaxilə tələb olunmur. Watchdog sistemi izləməyə davam edir.`;
+  }
+
+  return `🚨 HEAT Admin — Mərkəzi sistemdə problem aşkarlandı
+
+Server: ${sourceId}
+Vaxt (Bakı): ${time}
+${detail ? `Aşkarlanan səbəb: ${detail}\n` : ""}
+NƏ İŞLƏMİR?
+• Mərkəzi provisioner cavab vermir.
+• Müştəri Docker/collector, InfluxDB və Grafana sistemlərinin avtomatik vəziyyət yoxlamaları dayanıb.
+• Yeni müştəri qurulumları və provisioner üzərindən başladılan planlı hesabatlar icra olunmaya bilər.
+• Hazırda işləyən müştəri dashboardları öz konteynerləri işləkdirsə fəaliyyətini davam etdirə bilər.
+
+NƏ ETMƏK LAZIMDIR?
+1. Serverin açıq və internetə qoşulu olduğunu yoxlayın.
+2. HEAT Provisioner xidmətini yenidən başladın.
+3. Docker Desktop/Docker xidmətinin işlədiyini yoxlayın.
+4. Problem qalarsa provisioner xəta jurnalını yoxlayın və texniki müdaxilə edin.
+
+Watchdog nəzarətə davam edir və sistem düzələn kimi ayrıca bərpa mesajı göndərəcək.`;
+}
+
 export async function POST(request: Request) {
   if (!(await agentIsAuthorized(request))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,7 +95,7 @@ export async function POST(request: Request) {
     const recovered = status === "healthy";
     const result = await notifyAdminBot({
       eventType: desiredType,
-      message: `${recovered ? "✅" : "🚨"} HEAT Admin — Mərkəzi provisioner ${recovered ? "bərpa olundu" : "dayandı"}\n\nServer: ${sourceId}\nStatus: ${status}\n${detail ? `Səbəb: ${detail}\n` : ""}Vaxt: ${new Date().toISOString()}${recovered ? "\n\nMüştəri sistemlərinin avtomatik nəzarəti yenidən aktivdir." : "\n\nWatchdog işləyir, lakin provisioner cavab vermir. Dərhal yoxlama tələb olunur."}`,
+      message: buildWatchdogMessage({ recovered, sourceId, detail }),
     });
     return Response.json({ ok: true, adminNotified: result.delivered });
   } catch {
