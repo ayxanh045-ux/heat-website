@@ -10,11 +10,12 @@ type InstallPromptEvent = Event & {
 
 export function AdminPwaInstall() {
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(false);
+  const [installed, setInstalled] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches
+  );
   const [help, setHelp] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) setInstalled(true);
     navigator.serviceWorker?.register("/admin-sw.js", { scope: "/admin/" }).catch(() => undefined);
     const ready = (event: Event) => { event.preventDefault(); setPrompt(event as InstallPromptEvent); };
     const done = () => { setInstalled(true); setPrompt(null); };

@@ -3,15 +3,17 @@ import { customers, customerSecrets, provisioningJobs } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import {
   encryptProvisioningInput,
+  ProvisioningValidationError,
   requestIsSameOrigin,
   validateProvisioningInput,
 } from "@/lib/provisioning";
 
 function safeError(error: unknown): string {
   const message = error instanceof Error ? error.message : "Müştəri yaradıla bilmədi.";
+  if (error instanceof ProvisioningValidationError) return message;
   if (message.includes("UNIQUE constraint failed")) return "Bu slug və ya Device ID artıq istifadə olunur.";
   if (message.includes("no such table")) return "Portal bazası hələ hazırlanmayıb.";
-  return message.includes("token") || message.includes("key") ? "Təhlükəsizlik konfiqurasiyası tamamlanmayıb." : message;
+  return message.includes("token") || message.includes("key") ? "Təhlükəsizlik konfiqurasiyası tamamlanmayıb." : "Müştəri yaradıla bilmədi.";
 }
 
 export async function POST(request: Request) {

@@ -9,8 +9,7 @@ const MAX_FAILURES = 5;
 
 async function requestFingerprint(request: Request): Promise<string> {
   const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const agent = request.headers.get("user-agent")?.slice(0, 200) ?? "unknown";
-  return sha256(`${ip}|${agent}`);
+  return sha256(ip);
 }
 
 async function isBlocked(fingerprint: string, now: Date): Promise<boolean> {

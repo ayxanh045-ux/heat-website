@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Activity,
   AirVent,
@@ -821,11 +820,12 @@ export function ComparisonAbout() {
 }
 
 export function ContactSection() {
-  const [sent, setSent] = useState(false);
+  const [sent] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("submitted") === "1"
+  );
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("submitted") === "1") {
-      setSent(true);
       window.history.replaceState({}, "", `${window.location.pathname}#contact`);
     }
   }, []);

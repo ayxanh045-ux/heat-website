@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { customers } from "@/db/schema";
 import { getCustomerEnergySettings, updateCustomerEnergySettings } from "@/lib/customer-energy-settings";
 import type { EnergySettings } from "@/lib/customer-insights";
-import { agentIsAuthorized } from "@/lib/provisioning";
+import { agentCanAccessSlug, getAgentPrincipal } from "@/lib/provisioning";
 
 async function customerIdForSlug(slug: string): Promise<string | null> {
   const [customer] = await getDb().select({ id: customers.id }).from(customers).where(eq(customers.slug, slug)).limit(1);
@@ -11,16 +11,18 @@ async function customerIdForSlug(slug: string): Promise<string | null> {
 }
 
 export async function GET(request: Request) {
-  if (!(await agentIsAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const slug = new URL(request.url).searchParams.get("slug")?.slice(0, 50) ?? "";
+  const principal = await getAgentPrincipal(request);
+  if (!principal || !agentCanAccessSlug(principal, slug)) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const customerId = await customerIdForSlug(slug);
   if (!customerId) return Response.json({ error: "Customer not found" }, { status: 404 });
   return Response.json(await getCustomerEnergySettings(customerId));
 }
 
 export async function PUT(request: Request) {
-  if (!(await agentIsAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const slug = new URL(request.url).searchParams.get("slug")?.slice(0, 50) ?? "";
+  const principal = await getAgentPrincipal(request);
+  if (!principal || !agentCanAccessSlug(principal, slug)) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const customerId = await customerIdForSlug(slug);
   if (!customerId) return Response.json({ error: "Customer not found" }, { status: 404 });
   try {

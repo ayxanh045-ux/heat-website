@@ -6,7 +6,7 @@ import { decryptProvisioningInput } from "@/lib/provisioning";
 import { callTelegram, demoTelegramReply } from "@/lib/telegram";
 import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/telegram-scheduler";
 import { getAdminUser } from "@/lib/admin-auth";
-import { agentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
+import { globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { ADMIN_DIGEST_TIMES, buildAdminHealthDigest } from "@/lib/admin-health-digest";
 
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const adminRequest = requestIsSameOrigin(request) && Boolean(await getAdminUser());
-  if (!adminRequest && !(await agentIsAuthorized(request))) {
+  if (!adminRequest && !(await globalAgentIsAuthorized(request))) {
     return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
   }
   const db = getDb();

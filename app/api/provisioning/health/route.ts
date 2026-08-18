@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { customers, customerSystemHealth } from "@/db/schema";
 import { notifyAdminBot } from "@/lib/admin-bot";
-import { agentIsAuthorized } from "@/lib/provisioning";
+import { globalAgentIsAuthorized } from "@/lib/provisioning";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 
 type HealthItem = {
@@ -19,7 +19,7 @@ function clean(value: unknown, maximum: number): string {
 }
 
 export async function POST(request: Request) {
-  if (!(await agentIsAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await globalAgentIsAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await request.json() as { customers?: HealthItem[] };
     const items = Array.isArray(body.customers) ? body.customers.slice(0, 100) : [];

@@ -58,6 +58,33 @@ export const customerAccessTokens = sqliteTable("customer_access_tokens", {
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const customerAgentTokens = sqliteTable("customer_agent_tokens", {
+  customerId: text("customer_id").primaryKey().references(() => customers.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const deprovisioningJobs = sqliteTable(
+  "deprovisioning_jobs",
+  {
+    id: text("id").primaryKey(),
+    customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+    customerSlug: text("customer_slug").notNull(),
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    statusMessage: text("status_message"),
+    lockedAt: text("locked_at"),
+    completedAt: text("completed_at"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    index("idx_deprovisioning_jobs_customer").on(table.customerId),
+    index("idx_deprovisioning_jobs_status_created").on(table.status, table.createdAt),
+  ],
+);
+
 export const customerSessions = sqliteTable(
   "customer_sessions",
   {

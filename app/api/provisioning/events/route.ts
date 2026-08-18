@@ -2,10 +2,9 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { customers } from "@/db/schema";
 import { notifyAdminBot } from "@/lib/admin-bot";
-import { agentIsAuthorized } from "@/lib/provisioning";
+import { agentCanAccessSlug, getAgentPrincipal } from "@/lib/provisioning";
 
 export async function POST(request: Request) {
-  if (!(await agentIsAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await request.json() as Record<string, unknown>;
     const customerSlug = typeof body.customerSlug === "string" ? body.customerSlug.trim().slice(0, 50) : "";
@@ -16,6 +15,8 @@ export async function POST(request: Request) {
       ? body.command
       : "";
     if (!customerSlug || !outcome) return Response.json({ error: "Invalid event" }, { status: 400 });
+    const principal = await getAgentPrincipal(request);
+    if (!principal || !agentCanAccessSlug(principal, customerSlug)) return Response.json({ error: "Unauthorized" }, { status: 401 });
     const [customer] = await getDb().select().from(customers).where(eq(customers.slug, customerSlug)).limit(1);
     if (!customer) return Response.json({ error: "Customer not found" }, { status: 404 });
     if (kind === "command" && !command) return Response.json({ error: "Invalid command" }, { status: 400 });

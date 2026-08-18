@@ -34,7 +34,23 @@ export function AdminBotPanel() {
     } finally { setLoading(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/admin-bot/settings", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json() as AdminBotState & { error?: string };
+        if (!response.ok) throw new Error(payload.error || "Admin Bot məlumatları açıla bilmədi.");
+        setState(payload);
+      })
+      .catch((reason) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setError(reason instanceof Error ? reason.message : "Admin Bot məlumatları açıla bilmədi.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, []);
 
   async function save() {
     setSaving(true); setError(""); setResult("");

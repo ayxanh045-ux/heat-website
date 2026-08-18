@@ -1,9 +1,9 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { customers, customerSecrets, provisioningJobs } from "@/db/schema";
+import { customers, customerSecrets, deprovisioningJobs, provisioningJobs } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import { DEMO_CUSTOMER, DEMO_EDIT_VALUES } from "@/lib/demo-customer";
-import { decryptProvisioningInput, encryptProvisioningInput, requestIsSameOrigin, validateProvisioningInput } from "@/lib/provisioning";
+import { decryptProvisioningInput, encryptProvisioningInput, ProvisioningValidationError, requestIsSameOrigin, validateProvisioningInput } from "@/lib/provisioning";
 
 async function loadCustomer(customerId: string) {
   const db = getDb();
@@ -62,6 +62,30 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     return Response.json({ ok: true, jobId });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Məlumatlar yenilənə bilmədi.";
-    return Response.json({ error: message.includes("UNIQUE constraint") ? "Bu Device ID başqa müştəridə istifadə olunur." : message }, { status: 400 });
+    return Response.json({ error: message.includes("UNIQUE constraint") ? "Bu Device ID başqa müştəridə istifadə olunur." : error instanceof ProvisioningValidationError ? message : "Məlumatlar yenilənə bilmədi." }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  if (!await getAdminUser()) return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
+  if (!requestIsSameOrigin(request)) return Response.json({ error: "Etibarsız sorğu mənbəyi." }, { status: 403 });
+  try {
+    const { id } = await context.params;
+    if (id === DEMO_CUSTOMER.id) return Response.json({ error: "Demo hesabı silinə bilməz." }, { status: 400 });
+    const db = getDb();
+    const [customer] = await db.select({ id: customers.id, slug: customers.slug, status: customers.status })
+      .from(customers).where(eq(customers.id, id)).limit(1);
+    if (!customer) return Response.json({ error: "Müştəri tapılmadı." }, { status: 404 });
+    if (customer.status === "deleting") return Response.json({ ok: true, status: "deleting" });
+    const now = new Date().toISOString();
+    await db.batch([
+      db.insert(deprovisioningJobs).values({
+        id: crypto.randomUUID(), customerId: customer.id, customerSlug: customer.slug, updatedAt: now,
+      }),
+      db.update(customers).set({ status: "deleting", updatedAt: now }).where(eq(customers.id, customer.id)),
+    ]);
+    return Response.json({ ok: true, status: "deleting" }, { status: 202 });
+  } catch {
+    return Response.json({ error: "Silinmə tapşırığı yaradıla bilmədi." }, { status: 400 });
   }
 }

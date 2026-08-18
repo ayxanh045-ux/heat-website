@@ -1,7 +1,7 @@
 import { and, eq, lt } from "drizzle-orm";
 import { getDb } from "@/db";
 import { customerEnergySnapshots, customers } from "@/db/schema";
-import { agentIsAuthorized } from "@/lib/provisioning";
+import { agentCanAccessSlug, getAgentPrincipal } from "@/lib/provisioning";
 
 const clean = (value: unknown, maximum: number) => typeof value === "string" ? value.trim().slice(0, maximum) : "";
 const metric = (value: unknown, minimum: number, maximum: number, nullable = false) => {
@@ -11,13 +11,14 @@ const metric = (value: unknown, minimum: number, maximum: number, nullable = fal
 };
 
 export async function POST(request: Request) {
-  if (!(await agentIsAuthorized(request))) return Response.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await request.json() as { slug?: unknown; snapshots?: unknown };
     const slug = clean(body.slug, 50);
+    const principal = await getAgentPrincipal(request);
+    if (!principal || !agentCanAccessSlug(principal, slug)) return Response.json({ error: "Unauthorized" }, { status: 401 });
     const incoming = Array.isArray(body.snapshots) ? body.snapshots.slice(0, 500) : [];
     const db = getDb();
-    const [customer] = await db.select({ id: customers.id }).from(customers).where(eq(customers.slug, slug)).limit(1);
+    const [customer] = await db.select({ id: customers.id, deviceId: customers.deviceId }).from(customers).where(eq(customers.slug, slug)).limit(1);
     if (!customer) return Response.json({ error: "Customer not found" }, { status: 404 });
     let accepted = 0;
     for (const raw of incoming) {
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       const phaseBKw = metric(item.phaseBKw, 0, 100_000, true);
       const phaseCKw = metric(item.phaseCKw, 0, 100_000, true);
       const totalEnergyKwh = metric(item.totalEnergyKwh, 0, 1_000_000_000, true);
-      if (!deviceId || Number.isNaN(timestamp.getTime()) || timestamp.getTime() > Date.now() + 300_000 || Number.isNaN(totalPowerKw) || [phaseAKw, phaseBKw, phaseCKw, totalEnergyKwh].some(Number.isNaN)) continue;
+      if (deviceId !== customer.deviceId || Number.isNaN(timestamp.getTime()) || timestamp.getTime() > Date.now() + 300_000 || Number.isNaN(totalPowerKw) || [phaseAKw, phaseBKw, phaseCKw, totalEnergyKwh].some(Number.isNaN)) continue;
       const normalizedAt = timestamp.toISOString();
       const id = `${customer.id}:${deviceId}:${normalizedAt}`;
       await db.insert(customerEnergySnapshots).values({ id, customerId: customer.id, deviceId, measuredAt: normalizedAt, totalPowerKw, phaseAKw, phaseBKw, phaseCKw, totalEnergyKwh })

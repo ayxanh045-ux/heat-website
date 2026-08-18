@@ -2,7 +2,7 @@ import { desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminBotEvents } from "@/db/schema";
 import { notifyAdminBot } from "@/lib/admin-bot";
-import { agentIsAuthorized } from "@/lib/provisioning";
+import { globalAgentIsAuthorized } from "@/lib/provisioning";
 
 const SOURCE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -65,7 +65,7 @@ Watchdog nəzarətə davam edir və sistem düzələn kimi ayrıca bərpa mesaj�
 }
 
 export async function POST(request: Request) {
-  if (!(await agentIsAuthorized(request))) {
+  if (!(await globalAgentIsAuthorized(request))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {

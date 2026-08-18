@@ -96,13 +96,24 @@ const worker = {
     }
 
     const response = await handler.fetch(request, env, ctx);
-    const secured = new Response(response.body, response);
+    const nonceBytes = crypto.getRandomValues(new Uint8Array(18));
+    const nonce = btoa(String.fromCharCode(...nonceBytes));
+    const isHtml = response.headers.get("content-type")?.toLowerCase().startsWith("text/html");
+    const body = isHtml
+      ? (await response.text()).replace(/<script\b/g, `<script nonce="${nonce}"`)
+      : response.body;
+    const secured = new Response(body, response);
     secured.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     secured.headers.set("X-Content-Type-Options", "nosniff");
     secured.headers.set("X-Frame-Options", "DENY");
     secured.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     secured.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-    secured.headers.set("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; upgrade-insecure-requests");
+    secured.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    secured.headers.set("Cross-Origin-Resource-Policy", "same-origin");
+    secured.headers.set("Content-Security-Policy", `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; connect-src 'self'; upgrade-insecure-requests`);
+    if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/customer")) {
+      secured.headers.set("Cache-Control", "no-store, private");
+    }
     if (url.pathname === "/") secured.headers.set("Link", "<https://heatenergyanalytics.com/>; rel=\"canonical\"");
     return secured;
   },

@@ -218,8 +218,8 @@ function Footer() {
               <b>Company</b>
               <a href="#about">About</a>
               <a href="#contact">Contact</a>
-              <a href="#">Privacy</a>
-              <a href="#">Legal</a>
+              <span>Privacy</span>
+              <span>Legal</span>
             </div>
           </div>
         </div>
