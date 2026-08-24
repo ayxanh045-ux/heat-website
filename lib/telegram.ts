@@ -105,23 +105,31 @@ export function demoTelegramOwnerSummary(
   }
 
   const arrow = changePercent > 0 ? "⬆️" : changePercent < 0 ? "⬇️" : "➡️";
-  return `☀️ HEAT — Gündəlik biznes xülasəsi
-🏢 ${values.siteName}
-🕒 Son 24 saat · ${metrics.dateKey} ${metrics.time}
+  return `HEAT | GÜNDƏLİK ENERJİ XÜLASƏSİ
+────────────────────────
+Obyekt: ${values.siteName}
+Hesabat dövrü: son 24 saat
+Hazırlanma vaxtı: ${metrics.dateKey} ${metrics.time}
 
-Vəziyyət: ${state}
-💳 Enerji xərci: ${currentCost.toFixed(2)} AZN · ${currentKwh.toFixed(1)} kWh
-📊 Əvvəlki 24 saatla fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%) ${arrow}
-📅 Bu ay: ${monthActualCost.toFixed(2)} AZN
-🔮 Ay sonu: ${projectedCost.toFixed(2)} AZN · büdcə ${budget.toFixed(2)} AZN
-🌙 İş vaxtından kənar: ${afterHoursCost.toFixed(2)} AZN (9.0%)
-🔺 Pik yük: ${peakKw.toFixed(2)} kW · ${metrics.peakTime}
+ÜMUMİ VƏZİYYƏT
+${state}
 
-💡 Bu gün üçün addım:
+ƏSAS GÖSTƏRİCİLƏR
+• Son 24 saatın xərci: ${currentCost.toFixed(2)} AZN
+• Enerji sərfiyyatı: ${currentKwh.toFixed(1)} kWh
+• Əvvəlki 24 saatla fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%) ${arrow}
+• Bu ay indiyədək xərc: ${monthActualCost.toFixed(2)} AZN
+• Ay sonu xərc proqnozu: ${projectedCost.toFixed(2)} AZN
+• Aylıq büdcə: ${budget.toFixed(2)} AZN
+• İş saatından kənar xərc: ${afterHoursCost.toFixed(2)} AZN (9.0%)
+• Ən yüksək yük: ${peakKw.toFixed(2)} kW · ${metrics.peakTime}
+
+TÖVSİYƏ OLUNAN ADDIM
 ${action}
 
-Ətraflı baxış: /report · /last24h · /budget · /peaks · /afterhours
-Avtomatik vaxtlar: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
+Ətraflı hesabat: /report
+Digər baxışlar: /last24h · /budget · /peaks · /afterhours
+Avtomatik göndəriş vaxtları: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
 }
 
 export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string; energySettings?: Partial<EnergySettings> } = {}): string {
