@@ -3,7 +3,8 @@ import { getDb } from "@/db";
 import { adminStatusDigestDeliveries, customers, customerSecrets, customerSystemHealth, telegramReportDeliveries } from "@/db/schema";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput } from "@/lib/provisioning";
-import { callTelegram, demoTelegramReply } from "@/lib/telegram";
+import { callTelegram, demoTelegramOwnerSummary } from "@/lib/telegram";
+import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
 import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/telegram-scheduler";
 import { getAdminUser } from "@/lib/admin-auth";
 import { globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
@@ -63,9 +64,10 @@ export async function POST(request: Request) {
     if (claimed.length === 0) continue;
 
     try {
+      const energySettings = await getCustomerEnergySettings(vault.customerId);
       await callTelegram(values.telegramBotToken, "sendMessage", {
         chat_id: values.telegramDefaultChatId,
-        text: demoTelegramReply("/report", values, { automatic: true }),
+        text: demoTelegramOwnerSummary(values, energySettings),
       });
       sent += 1;
       await notifyAdminBot({

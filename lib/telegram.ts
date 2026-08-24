@@ -71,6 +71,59 @@ export async function callTelegram<T extends { ok?: boolean; description?: strin
   return result;
 }
 
+export function demoTelegramOwnerSummary(
+  values: ProvisioningInput,
+  energySettings: Partial<EnergySettings> = {},
+): string {
+  const metrics = demoOperationalMetrics();
+  const tariff = values.electricityTariffAznPerKwh;
+  const currentKwh = Number(metrics.latestEnergyKwh);
+  const previousKwh = Number(metrics.previous24hKwh);
+  const currentCost = currentKwh * tariff;
+  const previousCost = previousKwh * tariff;
+  const costDifference = currentCost - previousCost;
+  const changePercent = Number(metrics.changePercent);
+  const monthActualCost = Number(metrics.actualEnergyKwh) * tariff;
+  const projectedCost = Number(metrics.projectedKwh.replace(/,/g, "")) * tariff;
+  const budget = energySettings.monthlyBudgetAzn ?? 500;
+  const afterHoursKwh = currentKwh * 0.09;
+  const afterHoursCost = afterHoursKwh * tariff;
+  const peakKw = Number(metrics.peakPowerKw);
+  const peakThresholdKw = energySettings.peakThresholdKw ?? 10;
+
+  let state = "🟢 Nəzarətdədir";
+  let action = "Xüsusi tədbir tələb olunmur; gündəlik nəzarəti davam etdirin.";
+  if (projectedCost > budget) {
+    state = "🔴 Ay sonu büdcə riski var";
+    action = "Ən çox xərc yaradan saatları /peaks ilə yoxlayın və yüksək güclü cihazları növbəli işlədin.";
+  } else if (changePercent >= 15) {
+    state = "🟠 Sərfiyyat nəzərəçarpacaq dərəcədə artıb";
+    action = "Dünəndən fərqli işləyən və ya açıq qalan cihazları yoxlayın.";
+  } else if (peakKw > peakThresholdKw) {
+    state = "🟠 Pik yük həddi keçilib";
+    action = "Yüksək güclü cihazları eyni anda yox, 10–15 dəqiqə fərqlə işə salın.";
+  }
+
+  const arrow = changePercent > 0 ? "⬆️" : changePercent < 0 ? "⬇️" : "➡️";
+  return `☀️ HEAT — Gündəlik biznes xülasəsi
+🏢 ${values.siteName}
+🕒 Son 24 saat · ${metrics.dateKey} ${metrics.time}
+
+Vəziyyət: ${state}
+💳 Enerji xərci: ${currentCost.toFixed(2)} AZN · ${currentKwh.toFixed(1)} kWh
+📊 Əvvəlki 24 saatla fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%) ${arrow}
+📅 Bu ay: ${monthActualCost.toFixed(2)} AZN
+🔮 Ay sonu: ${projectedCost.toFixed(2)} AZN · büdcə ${budget.toFixed(2)} AZN
+🌙 İş vaxtından kənar: ${afterHoursCost.toFixed(2)} AZN (9.0%)
+🔺 Pik yük: ${peakKw.toFixed(2)} kW · ${metrics.peakTime}
+
+💡 Bu gün üçün addım:
+${action}
+
+Ətraflı baxış: /report · /last24h · /budget · /peaks · /afterhours
+Avtomatik vaxtlar: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
+}
+
 export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string; energySettings?: Partial<EnergySettings> } = {}): string {
   const metrics = demoOperationalMetrics();
   const phases = phaseNames(values);

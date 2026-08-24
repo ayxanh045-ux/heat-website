@@ -4,7 +4,8 @@ import { customerSecrets } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput, requestIsSameOrigin } from "@/lib/provisioning";
-import { demoTelegramAlert, demoTelegramReply } from "@/lib/telegram";
+import { demoTelegramAlert, demoTelegramOwnerSummary } from "@/lib/telegram";
+import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
 
 export async function POST(request: Request) {
   if (!await getAdminUser()) return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
@@ -18,10 +19,13 @@ export async function POST(request: Request) {
     if (!values.telegramEnabled || !values.telegramBotToken || !values.telegramDefaultChatId) {
       return Response.json({ error: "Telegram aktiv deyil və ya bot token/chat ID çatışmır." }, { status: 400 });
     }
+    const energySettings = customerId === DEMO_CUSTOMER.id
+      ? await getCustomerEnergySettings(customerId)
+      : undefined;
     const text = customerId === DEMO_CUSTOMER.id
       ? scenario === "peak" || scenario === "anomaly"
         ? demoTelegramAlert(scenario, values)
-        : demoTelegramReply("/report", values, { automatic: true })
+        : demoTelegramOwnerSummary(values, energySettings)
       : `✅ HEAT test bildirişi\n\n${values.customerName}\n${values.siteName}\n\nTelegram bağlantısı uğurla işləyir.`;
     const telegram = await fetch(`https://api.telegram.org/bot${values.telegramBotToken}/sendMessage`, {
       method: "POST",
