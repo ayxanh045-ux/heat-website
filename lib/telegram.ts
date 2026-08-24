@@ -105,31 +105,39 @@ export function demoTelegramOwnerSummary(
   }
 
   const arrow = changePercent > 0 ? "⬆️" : changePercent < 0 ? "⬇️" : "➡️";
-  return `HEAT | GÜNDƏLİK ENERJİ XÜLASƏSİ
-────────────────────────
-Obyekt: ${values.siteName}
-Hesabat dövrü: son 24 saat
-Hazırlanma vaxtı: ${metrics.dateKey} ${metrics.time}
+  return `━━━━━━━━━━━━━━━━━━━━━━
+⚡ HEAT
+GÜNDƏLİK ENERJİ HESABATI
+━━━━━━━━━━━━━━━━━━━━━━
 
-ÜMUMİ VƏZİYYƏT
+🏢 Obyekt: ${values.siteName}
+📅 Hesabat dövrü: Son 24 saat
+🕒 Hazırlanma vaxtı: ${metrics.dateKey} ${metrics.time}
+
+SİSTEMİN VƏZİYYƏTİ
 ${state}
 
-ƏSAS GÖSTƏRİCİLƏR
-• Son 24 saatın xərci: ${currentCost.toFixed(2)} AZN
-• Enerji sərfiyyatı: ${currentKwh.toFixed(1)} kWh
-• Əvvəlki 24 saatla fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%) ${arrow}
-• Bu ay indiyədək xərc: ${monthActualCost.toFixed(2)} AZN
-• Ay sonu xərc proqnozu: ${projectedCost.toFixed(2)} AZN
-• Aylıq büdcə: ${budget.toFixed(2)} AZN
-• İş saatından kənar xərc: ${afterHoursCost.toFixed(2)} AZN (9.0%)
-• Ən yüksək yük: ${peakKw.toFixed(2)} kW · ${metrics.peakTime}
+💰 XƏRC VƏ SƏRFİYYAT
+Son 24 saat: ${currentCost.toFixed(2)} AZN
+Enerji sərfiyyatı: ${currentKwh.toFixed(1)} kWh
 
-TÖVSİYƏ OLUNAN ADDIM
+📈 MÜQAYİSƏ VƏ PROQNOZ
+Əvvəlki 24 saatla fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%) ${arrow}
+Bu ay indiyədək: ${monthActualCost.toFixed(2)} AZN
+Ay sonu xərc proqnozu: ${projectedCost.toFixed(2)} AZN
+Aylıq büdcə: ${budget.toFixed(2)} AZN
+
+⚙️ İŞ REJİMİ
+İş saatından kənar xərc: ${afterHoursCost.toFixed(2)} AZN (9.0%)
+Ən yüksək yük: ${peakKw.toFixed(2)} kW · ${metrics.peakTime}
+
+💡 TÖVSİYƏ OLUNAN ADDIM
 ${action}
 
-Ətraflı hesabat: /report
+──────────────────────
+🔎 Ətraflı hesabat: /report
 Digər baxışlar: /last24h · /budget · /peaks · /afterhours
-Avtomatik göndəriş vaxtları: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
+🔔 Göndəriş vaxtları: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
 }
 
 export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string; energySettings?: Partial<EnergySettings> } = {}): string {
