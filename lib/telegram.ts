@@ -105,10 +105,8 @@ export function demoTelegramOwnerSummary(
   }
 
   const arrow = changePercent > 0 ? "⬆️" : changePercent < 0 ? "⬇️" : "➡️";
-  return `━━━━━━━━━━━━━━━━━━━━━━
-⚡ HEAT
+  return `⚡ HEAT
 GÜNDƏLİK ENERJİ HESABATI
-━━━━━━━━━━━━━━━━━━━━━━
 
 🏢 Obyekt: ${values.siteName}
 📅 Hesabat dövrü: Son 24 saat
@@ -134,7 +132,6 @@ Aylıq büdcə: ${budget.toFixed(2)} AZN
 💡 TÖVSİYƏ OLUNAN ADDIM
 ${action}
 
-──────────────────────
 🔎 Ətraflı hesabat: /report
 Digər baxışlar: /last24h · /budget · /peaks · /afterhours
 🔔 Göndəriş vaxtları: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
