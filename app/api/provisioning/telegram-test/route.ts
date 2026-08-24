@@ -3,13 +3,15 @@ import { getDb } from "@/db";
 import { customerSecrets } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
-import { decryptProvisioningInput, requestIsSameOrigin } from "@/lib/provisioning";
+import { decryptProvisioningInput, globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
 import { demoTelegramAlert, demoTelegramOwnerSummary } from "@/lib/telegram";
 import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
 
 export async function POST(request: Request) {
-  if (!await getAdminUser()) return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
-  if (!requestIsSameOrigin(request)) return Response.json({ error: "Etibarsız sorğu mənbəyi." }, { status: 403 });
+  const adminRequest = requestIsSameOrigin(request) && Boolean(await getAdminUser());
+  if (!adminRequest && !(await globalAgentIsAuthorized(request))) {
+    return Response.json({ error: "İcazə yoxdur." }, { status: 403 });
+  }
   try {
     const { customerId, scenario = "report" } = await request.json() as { customerId?: string; scenario?: "report" | "peak" | "anomaly" };
     if (!customerId) return Response.json({ error: "Müştəri seçilməyib." }, { status: 400 });
