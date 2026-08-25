@@ -2,9 +2,19 @@ import { eq } from "drizzle-orm";
 import { env } from "cloudflare:workers";
 import { getDb } from "@/db";
 import { adminBotEvents, adminBotSettings } from "@/db/schema";
-import { callTelegram } from "@/lib/telegram";
+import { callTelegram, telegramWebhookSecret } from "@/lib/telegram";
 
 export const ADMIN_BOT_SETTINGS_ID = "heat-admin-bot";
+export const ADMIN_BOT_COMMANDS = [
+  { command: "start", description: "HEAT Admin Bot menyusunu aç" },
+  { command: "demoanaliz", description: "Demo üçün günlük enerji analiz məlumatları" },
+  { command: "help", description: "Admin komandalarını göstər" },
+] as const;
+
+export const ADMIN_BOT_HELP =
+  "HEAT Admin Bot\n\n" +
+  "/demoanaliz — Demo hesabının günlük enerji məlumatlarını Gemini Notebook üçün hazır paket kimi verir.\n" +
+  "/help — bu komanda siyahısını göstərir.";
 
 export type AdminBotSecret = {
   botToken: string;
@@ -72,6 +82,30 @@ export async function loadAdminBot(): Promise<{ enabled: boolean; secret: AdminB
   } catch {
     return { enabled: false, secret: null };
   }
+}
+
+export async function configureAdminBotWebhook(
+  secret: AdminBotSecret,
+  webhookUrl: string,
+): Promise<void> {
+  await callTelegram(secret.botToken, "setWebhook", {
+    url: webhookUrl,
+    secret_token: await telegramWebhookSecret(secret.botToken),
+    allowed_updates: ["message"],
+    drop_pending_updates: false,
+  });
+  await callTelegram(secret.botToken, "setMyCommands", {
+    commands: ADMIN_BOT_COMMANDS,
+    scope: { type: "default" },
+  });
+  await callTelegram(secret.botToken, "setMyCommands", {
+    commands: ADMIN_BOT_COMMANDS,
+    scope: { type: "chat", chat_id: secret.chatId },
+  });
+  await callTelegram(secret.botToken, "setChatMenuButton", {
+    chat_id: secret.chatId,
+    menu_button: { type: "commands" },
+  });
 }
 
 export async function notifyAdminBot(input: {

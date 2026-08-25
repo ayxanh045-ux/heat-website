@@ -4,6 +4,7 @@ import { adminBotEvents, adminBotSettings, customerSystemHealth } from "@/db/sch
 import { getAdminUser } from "@/lib/admin-auth";
 import {
   ADMIN_BOT_SETTINGS_ID,
+  configureAdminBotWebhook,
   decryptAdminBotSecret,
   encryptAdminBotSecret,
   validateAdminBotSecret,
@@ -67,6 +68,12 @@ export async function PUT(request: Request) {
       target: adminBotSettings.id,
       set: { encryptedPayload, enabled: body.enabled === true, updatedAt: now },
     });
+    if (body.enabled === true) {
+      await configureAdminBotWebhook(
+        secret,
+        new URL("/api/admin-bot/webhook", request.url).toString(),
+      );
+    }
     return Response.json({ ok: true, enabled: body.enabled === true, configured: true, chatId: secret.chatId });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message.slice(0, 180) : "Admin Bot saxlanmadı." }, { status: 400 });

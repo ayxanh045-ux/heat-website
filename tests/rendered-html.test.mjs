@@ -57,3 +57,21 @@ test("includes the customer intelligence and Telegram capabilities", async () =>
   assert.match(telegram, /seçdiyiniz günün sərfiyyat və xərcini göstərir/);
   assert.match(telegram, /heat\.co2026@gmail\.com/);
 });
+
+test("admin bot provides a secure Gemini-ready demo analysis command", async () => {
+  const [adminBot, webhook, analysis] = await Promise.all([
+    readFile(new URL("../lib/admin-bot.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin-bot/webhook/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/admin-energy-analysis.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(adminBot, /command: "demoanaliz"/);
+  assert.match(adminBot, /setMyCommands/);
+  assert.match(webhook, /safeEqual/);
+  assert.match(webhook, /chatId !== config\.secret\.chatId/);
+  assert.match(analysis, /GEMINI NOTEBOOK ÜÇÜN GÜNLÜK ENERJİ MƏLUMAT PAKETİ/);
+  assert.match(analysis, /SON 24 SAAT/);
+  assert.match(analysis, /6 SAATLIQ İNTERVALLAR/);
+  assert.match(analysis, /AYLIQ VƏ BÜDCƏ GÖSTƏRİCİLƏRİ/);
+  assert.match(analysis, /GEMINI ÜÇÜN TAPŞIRIQ/);
+  assert.doesNotMatch(analysis, /\.deviceId|\.botToken|AdminPassword|AdminToken/);
+});
