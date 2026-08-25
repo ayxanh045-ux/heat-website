@@ -3,7 +3,25 @@ import { buildCustomerInsights } from "@/lib/customer-insights";
 import { demoInsightRows, demoInsightSnapshots } from "@/lib/demo-customer-insights";
 import { bakuDateKey, DEMO_CUSTOMER, DEMO_EDIT_VALUES, demoOperationalMetrics } from "@/lib/demo-customer";
 
-export async function buildDemoEnergyAnalysisPackage(now = new Date()): Promise<string> {
+export type EnergyAnalysisPeriod = "status" | "daily" | "weekly" | "monthly";
+
+function periodInstruction(period: EnergyAnalysisPeriod): string {
+  if (period === "status") {
+    return "Yalnız hazırkı güc, fazaların yükü və sistemin cari vəziyyətinə fokuslan. Texniki vahidləri sadə sözlərlə izah et və indi yoxlanmalı bir şey olub-olmadığını de.";
+  }
+  if (period === "weekly") {
+    return "Son 7 günün dəyişiminə fokuslan. Ən çox və ən az sərfiyyat olan günləri, ümumi istiqaməti və növbəti həftə üçün ən faydalı addımı sadə dildə göstər.";
+  }
+  if (period === "monthly") {
+    return "Cari ayın indiyədək nəticəsinə, büdcəyə və ay sonu proqnozuna fokuslan. Sahibkarın ay bitənədək nə etməli olduğunu sadə dildə göstər.";
+  }
+  return "Son 24 saata fokuslan. Dünənlə fərqi, əsas xərc səbəbini və bu gün görüləcək ən faydalı addımı sadə dildə göstər.";
+}
+
+export async function buildDemoEnergyAnalysisPackage(
+  now = new Date(),
+  period: EnergyAnalysisPeriod = "daily",
+): Promise<string> {
   const dateKey = bakuDateKey(now);
   const metrics = demoOperationalMetrics(now);
   const settings = await getCustomerEnergySettings(DEMO_CUSTOMER.id);
@@ -38,6 +56,7 @@ export async function buildDemoEnergyAnalysisPackage(now = new Date()): Promise<
 MƏLUMATIN STATUSU
 Mənbə: HEAT virtual Demo məlumatları
 Tarix: ${dateKey}
+Analiz dövrü: ${period}
 Saat qurşağı: ${DEMO_EDIT_VALUES.timezone}
 Qeyd: Demo ölçüləri realist simulyasiyadır, real elektrik ölçməsi deyil.
 
@@ -92,5 +111,6 @@ SON 7 GÜN
 ${recentDays}
 
 GEMINI ÜÇÜN TAPŞIRIQ
-Bu məlumatları Azərbaycan dilində biznes sahibinin anlayacağı formada analiz et. Çıxışda: 1) qısa rəhbər xülasəsi, 2) əsas dəyişikliklər, 3) mümkün səbəblər, 4) prioritet üzrə 3 konkret tədbir, 5) təxmini qənaət imkanı və 6) məlumat məhdudiyyətləri olsun. Ölçülən və təxmini göstəriciləri ayır, məlumatda olmayan faktları uydurma və elektrik nasazlığı barədə qəti diaqnoz vermə.`;
+${periodInstruction(period)}
+Bu məlumatları Azərbaycan dilində, enerji sahəsindən heç başı çıxmayan biznes sahibinin anlayacağı formada analiz et. Qısa cümlələr və gündəlik sözlər istifadə et. kW və kWh kimi vahidlərin biznes üçün mənasını sadə izah et. Çıxışda: 1) qısa xülasə, 2) ən vacib müşahidə, 3) prioritet üzrə ən çox 3 konkret addım, 4) mümkün qənaət və 5) məlumat məhdudiyyəti olsun. Ölçülən və təxmini göstəriciləri ayır, məlumatda olmayan faktları uydurma və elektrik nasazlığı barədə qəti diaqnoz vermə.`;
 }

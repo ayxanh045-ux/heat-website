@@ -112,9 +112,34 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   assert.match(panel, /Test düyməsi cari ayarları avtomatik saxlayır/);
   assert.match(panel, /const saveResponse = await fetch\("\/api\/admin-ai\/settings"/);
   assert.match(scheduler, /customer_ai_analysis_generated/);
-  assert.match(scheduler, /Əsas enerji reportu AI bölməsi olmadan göndəriləcək/);
-  assert.match(scheduler, /3900 - reportText\.length/);
+  assert.match(scheduler, /Əsas enerji reportu uğurla göndərildi/);
+  assert.match(scheduler, /text: analysis\.text/);
   assert.match(schema, /ai_analysis_settings/);
   assert.match(migration, /CREATE TABLE `ai_daily_analyses`/);
   assert.match(migration, /PRAGMA optimize/);
+});
+
+test("customer Telegram reports are simple and followed by period-aware AI analysis", async () => {
+  const [telegram, webhook, scheduler, analysisPackage, ai] = await Promise.all([
+    readFile(new URL("../lib/telegram.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/telegram/webhook/[customerId]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/telegram/scheduled-reports/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/admin-energy-analysis.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/ai-analysis.ts", import.meta.url), "utf8"),
+  ]);
+  for (const command of ["status", "report", "last24h", "weekly", "monthly"]) {
+    assert.match(webhook, new RegExp(`"/${command}":`));
+  }
+  assert.match(webhook, /customer_ai_analysis_delivered/);
+  assert.match(webhook, /Report və AI analizi iki ayrı mesajla çatdırıldı/);
+  assert.match(webhook, /Əsas report uğurla göndərildi/);
+  assert.match(scheduler, /ayrıca ikinci mesajla göndərildi/);
+  assert.doesNotMatch(scheduler, /reportText \+=/);
+  assert.match(telegram, /REPORT — CANLI VƏZİYYƏT/);
+  assert.match(telegram, /SADƏ İZAH/);
+  assert.match(telegram, /AI izahı növbəti mesajda/);
+  assert.match(analysisPackage, /heç başı çıxmayan biznes sahibinin anlayacağı formada/);
+  assert.match(analysisPackage, /periodInstruction/);
+  assert.match(ai, /HƏFTƏLİK AI ANALİZİ/);
+  assert.match(ai, /AYLIQ AI ANALİZİ/);
 });

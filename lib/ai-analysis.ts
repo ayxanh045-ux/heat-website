@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { env } from "cloudflare:workers";
 import { getDb } from "@/db";
 import { aiAnalysisSettings, aiDailyAnalyses } from "@/db/schema";
-import { buildDemoEnergyAnalysisPackage } from "@/lib/admin-energy-analysis";
+import { buildDemoEnergyAnalysisPackage, type EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
 import { DEMO_CUSTOMER, bakuDateKey } from "@/lib/demo-customer";
 
 export const AI_ANALYSIS_SETTINGS_ID = "heat-gemini-analysis";
@@ -271,13 +271,20 @@ async function callGemini(apiKey: string, model: string, prompt: string): Promis
   throw new Error("Gemini analizi tamamlaya bilmədi.");
 }
 
-function formatCustomerAnalysis(analysis: GeminiAnalysis): string {
+function analysisPeriodTitle(period: EnergyAnalysisPeriod): string {
+  if (period === "status") return "CANLI VƏZİYYƏT ÜZRƏ AI ANALİZİ";
+  if (period === "weekly") return "HƏFTƏLİK AI ANALİZİ";
+  if (period === "monthly") return "AYLIQ AI ANALİZİ";
+  return "GÜNDƏLİK AI ANALİZİ";
+}
+
+function formatCustomerAnalysis(analysis: GeminiAnalysis, period: EnergyAnalysisPeriod): string {
   const status = analysis.status === "critical"
     ? "🔴 Təcili diqqət"
     : analysis.status === "attention"
       ? "🟠 Diqqət tələb edir"
       : "🟢 Normal";
-  return `🤖 AI ENERJİ ANALİZİ
+  return `🤖 ${analysisPeriodTitle(period)}
 
 Vəziyyət: ${status}
 
@@ -299,13 +306,13 @@ ${analysis.caution}
 Bu avtomatik ilkin analizdir; elektrik təhlükəsizliyi diaqnozu deyil.`;
 }
 
-export async function generateDemoAiAnalysis(): Promise<string> {
+export async function generateDemoAiAnalysis(period: EnergyAnalysisPeriod = "daily"): Promise<string> {
   const settings = await loadAiAnalysisSettings();
   if (!settings.enabled || !settings.configured || !settings.apiKey) {
     throw new Error("AI analizi aktiv deyil və ya Gemini API key saxlanmayıb.");
   }
-  const prompt = await buildDemoEnergyAnalysisPackage();
-  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt));
+  const prompt = await buildDemoEnergyAnalysisPackage(new Date(), period);
+  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period);
 }
 
 export async function getOrCreateDemoDailyAiAnalysis(

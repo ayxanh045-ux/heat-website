@@ -71,38 +71,39 @@ export async function POST(request: Request) {
 
     try {
       const energySettings = await getCustomerEnergySettings(vault.customerId);
-      let reportText = demoTelegramOwnerSummary(values, energySettings);
+      const reportText = demoTelegramOwnerSummary(values, energySettings);
       let aiIncluded = false;
-      if (aiSettings.enabled && aiSettings.configured && dueTime === aiSettings.reportTime) {
-        const analysis = await getOrCreateDemoDailyAiAnalysis(now);
-        if (analysis.text) {
-          const available = Math.max(0, 3900 - reportText.length - 2);
-          reportText += `\n\n${analysis.text.slice(0, available)}`;
-          aiIncluded = true;
-          if (analysis.generated) {
-            await notifyAdminBot({
-              customerId: vault.customerId,
-              eventType: "customer_ai_analysis_generated",
-              message: `🤖 HEAT Admin — Gündəlik AI analizi hazırlandı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nNəticə: Analiz müştərinin gündəlik Telegram reportuna əlavə edildi.`,
-            });
-          }
-        } else if (analysis.generated && analysis.error) {
-          await notifyAdminBot({
-            customerId: vault.customerId,
-            eventType: "customer_ai_analysis_failed",
-            message: `⚠️ HEAT Admin — AI analiz xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nXəta: ${analysis.error}\nNəticə: Əsas enerji reportu AI bölməsi olmadan göndəriləcək.`,
-          });
-        }
-      }
       await callTelegram(values.telegramBotToken, "sendMessage", {
         chat_id: values.telegramDefaultChatId,
         text: reportText,
       });
       sent += 1;
+      if (aiSettings.enabled && aiSettings.configured) {
+        try {
+          const analysis = await getOrCreateDemoDailyAiAnalysis(now);
+          if (!analysis.text) throw new Error(analysis.error || "AI analizi yaradılmadı.");
+          await callTelegram(values.telegramBotToken, "sendMessage", {
+            chat_id: values.telegramDefaultChatId,
+            text: analysis.text,
+          });
+          aiIncluded = true;
+          await notifyAdminBot({
+            customerId: vault.customerId,
+            eventType: "customer_ai_analysis_generated",
+            message: `🤖 HEAT Admin — Gündəlik AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nNəticə: Report və AI analizi müştəriyə iki ayrı mesajla çatdırıldı.`,
+          });
+        } catch (analysisError) {
+          await notifyAdminBot({
+            customerId: vault.customerId,
+            eventType: "customer_ai_analysis_failed",
+            message: `⚠️ HEAT Admin — AI analiz xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nXəta: ${analysisError instanceof Error ? analysisError.message.slice(0, 180) : "AI analizi yaradılmadı."}\nNəticə: Əsas enerji reportu uğurla göndərildi.`,
+          });
+        }
+      }
       await notifyAdminBot({
         customerId: vault.customerId,
         eventType: "customer_report_delivered",
-        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nAI analizi: ${aiIncluded ? "reporta əlavə edildi" : "əlavə edilmədi"}\nNəticə: Müştəri Telegram reportunu qəbul etdi.`,
+        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nAI analizi: ${aiIncluded ? "ayrıca ikinci mesajla göndərildi" : "göndərilmədi"}\nNəticə: Müştəri Telegram reportunu qəbul etdi.`,
       });
     } catch (error) {
       await db.delete(telegramReportDeliveries).where(eq(telegramReportDeliveries.id, id));

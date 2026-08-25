@@ -5,9 +5,19 @@ import { decryptProvisioningInput } from "@/lib/provisioning";
 import { allowedTelegramChatIds, callTelegram, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { getCustomerEnergySettings, parseBudgetAmount, parseWorkingHours, updateCustomerEnergySettings } from "@/lib/customer-energy-settings";
+import { generateDemoAiAnalysis, getOrCreateDemoDailyAiAnalysis } from "@/lib/ai-analysis";
+import type { EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
 
 type TelegramUpdate = {
   message?: { chat?: { id?: number | string }; text?: string };
+};
+
+const AI_REPORT_COMMANDS: Partial<Record<string, EnergyAnalysisPeriod>> = {
+  "/status": "status",
+  "/report": "daily",
+  "/last24h": "daily",
+  "/weekly": "weekly",
+  "/monthly": "monthly",
 };
 
 export async function POST(request: Request, context: { params: Promise<{ customerId: string }> }) {
@@ -48,10 +58,42 @@ export async function POST(request: Request, context: { params: Promise<{ custom
         chat_id: chatId,
         text: reply,
       });
+      let aiResult = "Bu komanda üçün ayrıca AI analizi tələb olunmur.";
+      const analysisPeriod = AI_REPORT_COMMANDS[command];
+      if (analysisPeriod) {
+        try {
+          const analysis = analysisPeriod === "daily"
+            ? await getOrCreateDemoDailyAiAnalysis()
+            : { text: await generateDemoAiAnalysis(analysisPeriod), error: null };
+          if (!analysis.text) throw new Error(analysis.error || "AI analizi hazırda əlçatan deyil.");
+          await callTelegram(botToken, "sendMessage", {
+            chat_id: chatId,
+            text: analysis.text,
+          });
+          aiResult = "Reportdan sonra ayrıca AI analizi göndərildi.";
+          await notifyAdminBot({
+            customerId,
+            eventType: "customer_ai_analysis_delivered",
+            message: `🤖 HEAT Admin — Müştəriyə AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nDövr: ${analysisPeriod}\nNəticə: Report və AI analizi iki ayrı mesajla çatdırıldı.`,
+          });
+        } catch (analysisError) {
+          const reason = analysisError instanceof Error ? analysisError.message.slice(0, 180) : "AI analizi yaradılmadı.";
+          aiResult = `Əsas report göndərildi, AI analizi isə hazırlanmadı: ${reason}`;
+          await callTelegram(botToken, "sendMessage", {
+            chat_id: chatId,
+            text: "🤖 AI ANALİZİ\n\nƏsas reportunuz hazırdır. Əlavə AI izahı hazırda yaradıla bilmədi. Bir qədər sonra eyni komandanı yenidən yoxlaya bilərsiniz.",
+          }).catch(() => undefined);
+          await notifyAdminBot({
+            customerId,
+            eventType: "customer_ai_analysis_failed",
+            message: `⚠️ HEAT Admin — Müştəri AI analizi xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nXəta: ${reason}\nNəticə: Əsas report uğurla göndərildi.`,
+          });
+        }
+      }
       await notifyAdminBot({
         customerId,
         eventType: "customer_command_used",
-        message: `📲 HEAT Admin — Müştəri Telegram komandası işlətdi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nNəticə: ${command === "/setbudget" || command === "/sethours" ? "Ayar yeniləndi." : "Cavab uğurla göndərildi."}\nVaxt: ${new Date().toISOString()}`,
+        message: `📲 HEAT Admin — Müştəri Telegram komandası işlətdi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nNəticə: ${command === "/setbudget" || command === "/sethours" ? "Ayar yeniləndi." : "Cavab uğurla göndərildi."}\nAI: ${aiResult}\nVaxt: ${new Date().toISOString()}`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Komanda icra edilmədi.";
