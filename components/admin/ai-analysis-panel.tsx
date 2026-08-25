@@ -61,6 +61,14 @@ export function AiAnalysisPanel() {
   const test = async () => {
     setTesting(true); setError(""); setMessage("");
     try {
+      const saveResponse = await fetch("/api/admin-ai/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ enabled: settings.enabled, reportTime: settings.reportTime, apiKey }),
+      });
+      const saved = await saveResponse.json() as Settings & { error?: string };
+      if (!saveResponse.ok) throw new Error(saved.error || "Ayarlar saxlanmadı.");
+      setSettings(saved); setApiKey("");
       const response = await fetch("/api/admin-ai/test", { method: "POST" });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "Test göndərilmədi.");
@@ -82,10 +90,10 @@ export function AiAnalysisPanel() {
         <label><span>Gündəlik AI report saatı — Bakı vaxtı</span><input type="time" value={settings.reportTime} onChange={(event) => setSettings((current) => ({ ...current, reportTime: event.target.value }))} /></label>
         <label><span>Analiz modeli</span><input value={settings.model} disabled /></label>
       </div>
-      <div className={styles.security}><ShieldCheck size={17} /><span>API key şifrəli saxlanır və bir daha brauzerə qaytarılmır. Gemini-yə yalnız enerji göstəriciləri və məkan konteksti göndərilir.</span></div>
+      <div className={styles.security}><ShieldCheck size={17} /><span>API key şifrəli saxlanır və bir daha brauzerə qaytarılmır. Test düyməsi cari ayarları avtomatik saxlayır. Gemini-yə yalnız enerji göstəriciləri və məkan konteksti göndərilir.</span></div>
       {error && <div className={styles.error} role="alert">{error}</div>}
       {message && <div className={styles.success}><CheckCircle2 size={16} />{message}</div>}
-      <footer><span>{settings.configured ? "Gemini açarı saxlanılıb" : "Gemini açarı hələ əlavə edilməyib"}</span><div><button type="button" className={styles.test} onClick={test} disabled={testing || saving || !settings.configured || !settings.enabled}>{testing ? <Loader2 className="spin" size={16} /> : <Send size={16} />}Testi Admin Bot-a göndər</button><button type="button" className={styles.save} onClick={save} disabled={saving || testing}>{saving ? <Loader2 className="spin" size={16} /> : <Save size={16} />}Ayarları saxla</button></div></footer>
+      <footer><span>{settings.configured ? "Gemini açarı saxlanılıb" : "Gemini açarı hələ əlavə edilməyib"}</span><div><button type="button" className={styles.test} onClick={test} disabled={testing || saving || !settings.enabled || (!settings.configured && !apiKey.trim())}>{testing ? <Loader2 className="spin" size={16} /> : <Send size={16} />}Testi Admin Bot-a göndər</button><button type="button" className={styles.save} onClick={save} disabled={saving || testing}>{saving ? <Loader2 className="spin" size={16} /> : <Save size={16} />}Ayarları saxla</button></div></footer>
     </>}
   </section>;
 }

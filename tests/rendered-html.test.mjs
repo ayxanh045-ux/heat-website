@@ -103,6 +103,8 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   assert.match(testRoute, /ai_analysis_test/);
   assert.match(panel, /API key şifrəli saxlanır və bir daha brauzerə qaytarılmır/);
   assert.match(panel, /Testi Admin Bot-a göndər/);
+  assert.match(panel, /Test düyməsi cari ayarları avtomatik saxlayır/);
+  assert.match(panel, /const saveResponse = await fetch\("\/api\/admin-ai\/settings"/);
   assert.match(scheduler, /customer_ai_analysis_generated/);
   assert.match(scheduler, /Əsas enerji reportu AI bölməsi olmadan göndəriləcək/);
   assert.match(scheduler, /3900 - reportText\.length/);
