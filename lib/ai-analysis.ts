@@ -107,7 +107,7 @@ export function validateAiSettingsInput(input: {
 }
 
 export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings> {
-  const [row] = await getDb().select().from(aiAnalysisSettings)
+  const [row] = await getDb({ readFromPrimary: true }).select().from(aiAnalysisSettings)
     .where(eq(aiAnalysisSettings.id, AI_ANALYSIS_SETTINGS_ID)).limit(1);
   if (!row) {
     return {
@@ -143,7 +143,7 @@ export async function saveAiAnalysisSettings(input: {
   reportTime: string;
   apiKey: string;
 }): Promise<AiAnalysisSettings> {
-  const db = getDb();
+  const db = getDb({ readFromPrimary: true });
   const [existing] = await db.select().from(aiAnalysisSettings)
     .where(eq(aiAnalysisSettings.id, AI_ANALYSIS_SETTINGS_ID)).limit(1);
   const encryptedApiKey = input.apiKey
@@ -293,7 +293,7 @@ export async function getOrCreateDemoDailyAiAnalysis(
   }
   const localDate = bakuDateKey(now);
   const id = `${DEMO_CUSTOMER.id}:${localDate}`;
-  const db = getDb();
+  const db = getDb({ readFromPrimary: true });
   const [existing] = await db.select().from(aiDailyAnalyses)
     .where(eq(aiDailyAnalyses.id, id)).limit(1);
   if (existing?.status === "ready" && existing.analysisText) {

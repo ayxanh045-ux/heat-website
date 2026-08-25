@@ -77,8 +77,9 @@ test("admin bot provides a secure Gemini-ready demo analysis command", async () 
 });
 
 test("daily Gemini analysis is encrypted, admin-only, cached and safely appended", async () => {
-  const [analysis, settingsRoute, testRoute, panel, scheduler, schema, migration] = await Promise.all([
+  const [analysis, database, settingsRoute, testRoute, panel, scheduler, schema, migration] = await Promise.all([
     readFile(new URL("../lib/ai-analysis.ts", import.meta.url), "utf8"),
+    readFile(new URL("../db/index.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin-ai/settings/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin-ai/test/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/admin/ai-analysis-panel.tsx", import.meta.url), "utf8"),
@@ -94,6 +95,8 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   assert.match(analysis, /responseMimeType: "application\/json"/);
   assert.match(analysis, /gemini-2\.5-flash/);
   assert.match(analysis, /aiDailyAnalyses/);
+  assert.match(analysis, /readFromPrimary: true/);
+  assert.match(database, /withSession\("first-primary"\)/);
   assert.doesNotMatch(settingsRoute, /apiKey: settings\.apiKey/);
   assert.match(settingsRoute, /getAdminUser/);
   assert.match(settingsRoute, /requestIsSameOrigin/);
