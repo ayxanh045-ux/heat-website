@@ -6,7 +6,7 @@ import { buildDemoEnergyAnalysisPackage } from "@/lib/admin-energy-analysis";
 import { DEMO_CUSTOMER, bakuDateKey } from "@/lib/demo-customer";
 
 export const AI_ANALYSIS_SETTINGS_ID = "heat-gemini-analysis";
-export const AI_ANALYSIS_MODEL = "gemini-2.5-flash";
+export const AI_ANALYSIS_MODEL = "gemini-3.6-flash";
 
 export type AiAnalysisSettings = {
   enabled: boolean;
@@ -123,7 +123,7 @@ export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings
     return {
       enabled: row.enabled,
       reportTime: row.reportTime,
-      model: row.model,
+      model: AI_ANALYSIS_MODEL,
       configured: Boolean(apiKey),
       apiKey,
     };
@@ -131,7 +131,7 @@ export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings
     return {
       enabled: false,
       reportTime: row.reportTime,
-      model: row.model,
+      model: AI_ANALYSIS_MODEL,
       configured: false,
       apiKey: "",
     };
@@ -211,7 +211,6 @@ async function callGemini(apiKey: string, model: string, prompt: string): Promis
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.2,
           maxOutputTokens: 1200,
           responseMimeType: "application/json",
           responseSchema: {

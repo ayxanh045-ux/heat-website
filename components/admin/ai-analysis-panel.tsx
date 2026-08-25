@@ -14,7 +14,7 @@ type Settings = {
 const INITIAL: Settings = {
   enabled: false,
   reportTime: "09:00",
-  model: "gemini-2.5-flash",
+  model: "gemini-3.6-flash",
   configured: false,
 };
 

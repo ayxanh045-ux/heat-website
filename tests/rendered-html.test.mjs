@@ -93,7 +93,8 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   assert.match(analysis, /apiKey\.slice\(1, -1\)\.trim\(\)/);
   assert.match(analysis, /\{20,500\}/);
   assert.match(analysis, /responseMimeType: "application\/json"/);
-  assert.match(analysis, /gemini-2\.5-flash/);
+  assert.match(analysis, /gemini-3\.6-flash/);
+  assert.doesNotMatch(analysis, /temperature:/);
   assert.match(analysis, /aiDailyAnalyses/);
   assert.match(analysis, /readFromPrimary: true/);
   assert.match(database, /withSession\("first-primary"\)/);
