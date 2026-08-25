@@ -26,7 +26,27 @@ type GeminiAnalysis = {
 };
 
 const TIME = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
-const API_KEY = /^[A-Za-z0-9_-]{20,200}$/;
+const API_KEY = /^\S{20,500}$/;
+
+function hasControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || code === 127;
+  });
+}
+
+function normalizeApiKey(value: unknown): string {
+  let apiKey = String(value ?? "").trim();
+  apiKey = apiKey.replace(/^GEMINI_API_KEY\s*=\s*/i, "").trim();
+  if (
+    apiKey.length >= 2 &&
+    ((apiKey.startsWith('"') && apiKey.endsWith('"')) ||
+      (apiKey.startsWith("'") && apiKey.endsWith("'")))
+  ) {
+    apiKey = apiKey.slice(1, -1).trim();
+  }
+  return apiKey;
+}
 
 function base64Url(bytes: Uint8Array): string {
   let binary = "";
@@ -78,9 +98,11 @@ export function validateAiSettingsInput(input: {
   apiKey?: unknown;
 }): { enabled: boolean; reportTime: string; apiKey: string } {
   const reportTime = String(input.reportTime ?? "").trim();
-  const apiKey = String(input.apiKey ?? "").trim();
+  const apiKey = normalizeApiKey(input.apiKey);
   if (!TIME.test(reportTime)) throw new Error("Göndəriş vaxtını HH:MM formatında daxil edin.");
-  if (apiKey && !API_KEY.test(apiKey)) throw new Error("Gemini API key formatı düzgün deyil.");
+  if (apiKey && (!API_KEY.test(apiKey) || hasControlCharacter(apiKey))) {
+    throw new Error("Gemini API key natamamdır və ya içində boşluq var.");
+  }
   return { enabled: input.enabled === true, reportTime, apiKey };
 }
 

@@ -88,6 +88,9 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   ]);
   assert.match(analysis, /AES-GCM/);
   assert.match(analysis, /x-goog-api-key/);
+  assert.match(analysis, /GEMINI_API_KEY\\s\*=\\s\*/);
+  assert.match(analysis, /apiKey\.slice\(1, -1\)\.trim\(\)/);
+  assert.match(analysis, /\{20,500\}/);
   assert.match(analysis, /responseMimeType: "application\/json"/);
   assert.match(analysis, /gemini-2\.5-flash/);
   assert.match(analysis, /aiDailyAnalyses/);
