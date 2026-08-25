@@ -131,6 +131,8 @@ test("customer Telegram reports are simple and followed by period-aware AI analy
     assert.match(webhook, new RegExp(`"/${command}":`));
   }
   assert.match(webhook, /customer_ai_analysis_delivered/);
+  assert.match(webhook, /generateCustomerAiAnalysis\(customerId, values, analysisPeriod\)/);
+  assert.match(webhook, /getOrCreateCustomerDailyAiAnalysis\(customerId, values\)/);
   assert.match(webhook, /Report və AI analizi iki ayrı mesajla çatdırıldı/);
   assert.match(webhook, /Əsas report uğurla göndərildi/);
   assert.match(scheduler, /ayrıca ikinci mesajla göndərildi/);
@@ -140,6 +142,7 @@ test("customer Telegram reports are simple and followed by period-aware AI analy
   assert.match(telegram, /AI izahı növbəti mesajda/);
   assert.match(analysisPackage, /heç başı çıxmayan biznes sahibinin anlayacağı formada/);
   assert.match(analysisPackage, /periodInstruction/);
+  assert.match(analysisPackage, /müştərinin HEAT sisteminə ötürülmüş ölçmələri/);
   assert.match(ai, /HƏFTƏLİK AI ANALİZİ/);
   assert.match(ai, /AYLIQ AI ANALİZİ/);
 });

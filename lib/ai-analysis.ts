@@ -2,8 +2,9 @@ import { eq } from "drizzle-orm";
 import { env } from "cloudflare:workers";
 import { getDb } from "@/db";
 import { aiAnalysisSettings, aiDailyAnalyses } from "@/db/schema";
-import { buildDemoEnergyAnalysisPackage, type EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
+import { buildCustomerEnergyAnalysisPackage, buildDemoEnergyAnalysisPackage, type EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
 import { DEMO_CUSTOMER, bakuDateKey } from "@/lib/demo-customer";
+import type { ProvisioningInput } from "@/lib/provisioning";
 
 export const AI_ANALYSIS_SETTINGS_ID = "heat-gemini-analysis";
 export const AI_ANALYSIS_MODEL = "gemini-3.6-flash";
@@ -313,6 +314,47 @@ export async function generateDemoAiAnalysis(period: EnergyAnalysisPeriod = "dai
   }
   const prompt = await buildDemoEnergyAnalysisPackage(new Date(), period);
   return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period);
+}
+
+export async function generateCustomerAiAnalysis(
+  customerId: string,
+  values: ProvisioningInput,
+  period: EnergyAnalysisPeriod = "daily",
+): Promise<string> {
+  const settings = await loadAiAnalysisSettings();
+  if (!settings.enabled || !settings.configured || !settings.apiKey) {
+    throw new Error("AI analizi aktiv deyil və ya Gemini API key saxlanmayıb.");
+  }
+  const prompt = await buildCustomerEnergyAnalysisPackage(customerId, values, new Date(), period);
+  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period);
+}
+
+export async function getOrCreateCustomerDailyAiAnalysis(
+  customerId: string,
+  values: ProvisioningInput,
+  now = new Date(),
+): Promise<{ text: string | null; generated: boolean; error: string | null }> {
+  if (customerId === DEMO_CUSTOMER.id) return getOrCreateDemoDailyAiAnalysis(now);
+  const settings = await loadAiAnalysisSettings();
+  if (!settings.enabled || !settings.configured) return { text: null, generated: false, error: null };
+  const localDate = bakuDateKey(now);
+  const id = `${customerId}:${localDate}`;
+  const db = getDb({ readFromPrimary: true });
+  const [existing] = await db.select().from(aiDailyAnalyses).where(eq(aiDailyAnalyses.id, id)).limit(1);
+  if (existing?.status === "ready" && existing.analysisText) return { text: existing.analysisText, generated: false, error: null };
+  try {
+    const text = await generateCustomerAiAnalysis(customerId, values, "daily");
+    const updatedAt = new Date().toISOString();
+    await db.insert(aiDailyAnalyses).values({ id, customerId, localDate, status: "ready", analysisText: text, errorMessage: null, model: settings.model, updatedAt })
+      .onConflictDoUpdate({ target: aiDailyAnalyses.id, set: { status: "ready", analysisText: text, errorMessage: null, model: settings.model, updatedAt } });
+    return { text, generated: true, error: null };
+  } catch (error) {
+    const message = error instanceof Error ? error.message.slice(0, 180) : "AI analizi yaradılmadı.";
+    const updatedAt = new Date().toISOString();
+    await db.insert(aiDailyAnalyses).values({ id, customerId, localDate, status: "failed", analysisText: null, errorMessage: message, model: settings.model, updatedAt })
+      .onConflictDoUpdate({ target: aiDailyAnalyses.id, set: { status: "failed", analysisText: null, errorMessage: message, model: settings.model, updatedAt } });
+    return { text: null, generated: true, error: message };
+  }
 }
 
 export async function getOrCreateDemoDailyAiAnalysis(

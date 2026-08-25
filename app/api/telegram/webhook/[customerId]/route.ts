@@ -5,7 +5,7 @@ import { decryptProvisioningInput } from "@/lib/provisioning";
 import { allowedTelegramChatIds, callTelegram, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { getCustomerEnergySettings, parseBudgetAmount, parseWorkingHours, updateCustomerEnergySettings } from "@/lib/customer-energy-settings";
-import { generateDemoAiAnalysis, getOrCreateDemoDailyAiAnalysis } from "@/lib/ai-analysis";
+import { generateCustomerAiAnalysis, getOrCreateCustomerDailyAiAnalysis } from "@/lib/ai-analysis";
 import type { EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
 
 type TelegramUpdate = {
@@ -63,8 +63,8 @@ export async function POST(request: Request, context: { params: Promise<{ custom
       if (analysisPeriod) {
         try {
           const analysis = analysisPeriod === "daily"
-            ? await getOrCreateDemoDailyAiAnalysis()
-            : { text: await generateDemoAiAnalysis(analysisPeriod), error: null };
+            ? await getOrCreateCustomerDailyAiAnalysis(customerId, values)
+            : { text: await generateCustomerAiAnalysis(customerId, values, analysisPeriod), error: null };
           if (!analysis.text) throw new Error(analysis.error || "AI analizi hazırda əlçatan deyil.");
           await callTelegram(botToken, "sendMessage", {
             chat_id: chatId,
