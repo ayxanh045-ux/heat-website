@@ -10,6 +10,7 @@ import { getAdminUser } from "@/lib/admin-auth";
 import { globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { ADMIN_DIGEST_TIMES, buildAdminHealthDigest } from "@/lib/admin-health-digest";
+import { getOrCreateDemoDailyAiAnalysis, loadAiAnalysisSettings } from "@/lib/ai-analysis";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   const now = new Date();
   let sent = 0;
   let adminDigestsSent = 0;
+  const aiSettings = await loadAiAnalysisSettings();
 
   const baku = localDateAndTime(now, "Asia/Baku");
   const adminDueTime = dueScheduledTime(baku.time, [...ADMIN_DIGEST_TIMES]);
@@ -55,7 +57,11 @@ export async function POST(request: Request) {
     try { values = await decryptProvisioningInput(vault.encryptedPayload); } catch { continue; }
     if (!values.telegramEnabled || !values.telegramBotToken || !values.telegramDefaultChatId) continue;
     const local = localDateAndTime(now, values.timezone);
-    const dueTime = dueScheduledTime(local.time, values.telegramReportTimes.split(","));
+    const reportTimes = values.telegramReportTimes.split(",");
+    const scheduledTimes = aiSettings.enabled && aiSettings.configured
+      ? [...new Set([...reportTimes, aiSettings.reportTime])]
+      : reportTimes;
+    const dueTime = dueScheduledTime(local.time, scheduledTimes);
     if (!dueTime) continue;
 
     const scheduledFor = `${local.date}T${dueTime}`;
@@ -65,15 +71,38 @@ export async function POST(request: Request) {
 
     try {
       const energySettings = await getCustomerEnergySettings(vault.customerId);
+      let reportText = demoTelegramOwnerSummary(values, energySettings);
+      let aiIncluded = false;
+      if (aiSettings.enabled && aiSettings.configured && dueTime === aiSettings.reportTime) {
+        const analysis = await getOrCreateDemoDailyAiAnalysis(now);
+        if (analysis.text) {
+          const available = Math.max(0, 3900 - reportText.length - 2);
+          reportText += `\n\n${analysis.text.slice(0, available)}`;
+          aiIncluded = true;
+          if (analysis.generated) {
+            await notifyAdminBot({
+              customerId: vault.customerId,
+              eventType: "customer_ai_analysis_generated",
+              message: `🤖 HEAT Admin — Gündəlik AI analizi hazırlandı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nNəticə: Analiz müştərinin gündəlik Telegram reportuna əlavə edildi.`,
+            });
+          }
+        } else if (analysis.generated && analysis.error) {
+          await notifyAdminBot({
+            customerId: vault.customerId,
+            eventType: "customer_ai_analysis_failed",
+            message: `⚠️ HEAT Admin — AI analiz xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nXəta: ${analysis.error}\nNəticə: Əsas enerji reportu AI bölməsi olmadan göndəriləcək.`,
+          });
+        }
+      }
       await callTelegram(values.telegramBotToken, "sendMessage", {
         chat_id: values.telegramDefaultChatId,
-        text: demoTelegramOwnerSummary(values, energySettings),
+        text: reportText,
       });
       sent += 1;
       await notifyAdminBot({
         customerId: vault.customerId,
         eventType: "customer_report_delivered",
-        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nNəticə: Müştəri Telegram reportunu qəbul etdi.`,
+        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nAI analizi: ${aiIncluded ? "reporta əlavə edildi" : "əlavə edilmədi"}\nNəticə: Müştəri Telegram reportunu qəbul etdi.`,
       });
     } catch (error) {
       await db.delete(telegramReportDeliveries).where(eq(telegramReportDeliveries.id, id));

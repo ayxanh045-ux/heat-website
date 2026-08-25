@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, Eye, EyeOff, Loader2, Plus, ShieldCheck, Sparkles } from "lucide-react";
 import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
+import { AiAnalysisPanel } from "@/components/admin/ai-analysis-panel";
 
 type Fields = {
   customerName: string; customerSlug: string; siteName: string; deviceName: string;
@@ -109,8 +110,8 @@ export function ProvisioningForm() {
     } catch (problem) { setError(problem instanceof Error ? problem.message : "Gözlənilməz xəta baş verdi."); }
     finally { setBusy(false); }
   };
-  if (created) return <div className="admin-success"><CheckCircle2 size={42} /><h2>Müştəri növbəyə əlavə edildi</h2><p>Lokal provisioner agent sistemi quracaq. Status siyahıda avtomatik yenilənəcək.</p><code>{created.jobId}</code><button onClick={() => setCreated(null)}><Plus size={16} /> Yeni müştəri</button></div>;
-  return <form className="provision-form" onSubmit={submit}>
+  if (created) return <><AiAnalysisPanel /><div className="admin-success"><CheckCircle2 size={42} /><h2>Müştəri növbəyə əlavə edildi</h2><p>Lokal provisioner agent sistemi quracaq. Status siyahıda avtomatik yenilənəcək.</p><code>{created.jobId}</code><button onClick={() => setCreated(null)}><Plus size={16} /> Yeni müştəri</button></div></>;
+  return <><AiAnalysisPanel /><form className="provision-form" onSubmit={submit}>
     <div className="form-progress"><span>Hazırlıq</span><strong>{progress}%</strong><i><b style={{ width: `${progress}%` }} /></i></div>
     <div className="field-legend"><span><b className="custom">*</b> Özün təyin edirsən</span><span><b className="sourced">*</b> Başqa sistemdən götürülür — ulduzun üzərinə gəl</span></div>
     <section><div className="admin-section-title"><span>01</span><div><h2>Müştəri və obyekt</h2><p>Sistemdə görünəcək identifikasiya məlumatları.</p></div></div><div className="admin-form-grid">
@@ -158,5 +159,5 @@ export function ProvisioningForm() {
     </div><div className="ai-privacy-note"><ShieldCheck size={16} /><span>Buraya parol, token, Cloud Key və şəxsi məlumat yazmayın. AI-yə yalnız bu məkan təsviri və enerji göstəriciləri ötürülür.</span></div></section>
     {error && <div className="admin-error" role="alert">{error}</div>}
     <div className="admin-submit-row"><div><ShieldCheck size={18} /><span>Məlumatlar şifrələnmiş seyfdə saxlanır və yalnız adminə göstərilir.</span></div><button disabled={busy} type="submit">{busy ? <Loader2 className="spin" size={17} /> : <Plus size={17} />}{busy ? "Növbəyə əlavə edilir" : "Müştəri sistemini qur"}</button></div>
-  </form>;
+  </form></>;
 }

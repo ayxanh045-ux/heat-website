@@ -200,6 +200,34 @@ export const adminStatusDigestDeliveries = sqliteTable(
   (table) => [uniqueIndex("idx_admin_status_digest_scheduled_unique").on(table.scheduledFor)],
 );
 
+export const aiAnalysisSettings = sqliteTable("ai_analysis_settings", {
+  id: text("id").primaryKey(),
+  encryptedApiKey: text("encrypted_api_key").notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
+  reportTime: text("report_time").notNull().default("09:00"),
+  model: text("model").notNull().default("gemini-2.5-flash"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const aiDailyAnalyses = sqliteTable(
+  "ai_daily_analyses",
+  {
+    id: text("id").primaryKey(),
+    customerId: text("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+    localDate: text("local_date").notNull(),
+    status: text("status").notNull(),
+    analysisText: text("analysis_text"),
+    errorMessage: text("error_message"),
+    model: text("model").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("idx_ai_daily_analyses_customer_date").on(table.customerId, table.localDate),
+  ],
+);
+
 export const adminDevices = sqliteTable("admin_devices", {
   id: text("id").primaryKey(),
   tokenHash: text("token_hash").notNull().unique(),

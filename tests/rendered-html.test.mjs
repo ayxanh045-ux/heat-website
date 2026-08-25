@@ -75,3 +75,32 @@ test("admin bot provides a secure Gemini-ready demo analysis command", async () 
   assert.match(analysis, /GEMINI ÜÇÜN TAPŞIRIQ/);
   assert.doesNotMatch(analysis, /\.deviceId|\.botToken|AdminPassword|AdminToken/);
 });
+
+test("daily Gemini analysis is encrypted, admin-only, cached and safely appended", async () => {
+  const [analysis, settingsRoute, testRoute, panel, scheduler, schema, migration] = await Promise.all([
+    readFile(new URL("../lib/ai-analysis.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin-ai/settings/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin-ai/test/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../components/admin/ai-analysis-panel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/telegram/scheduled-reports/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0013_ai_analysis.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(analysis, /AES-GCM/);
+  assert.match(analysis, /x-goog-api-key/);
+  assert.match(analysis, /responseMimeType: "application\/json"/);
+  assert.match(analysis, /gemini-2\.5-flash/);
+  assert.match(analysis, /aiDailyAnalyses/);
+  assert.doesNotMatch(settingsRoute, /apiKey: settings\.apiKey/);
+  assert.match(settingsRoute, /getAdminUser/);
+  assert.match(settingsRoute, /requestIsSameOrigin/);
+  assert.match(testRoute, /ai_analysis_test/);
+  assert.match(panel, /API key şifrəli saxlanır və bir daha brauzerə qaytarılmır/);
+  assert.match(panel, /Testi Admin Bot-a göndər/);
+  assert.match(scheduler, /customer_ai_analysis_generated/);
+  assert.match(scheduler, /Əsas enerji reportu AI bölməsi olmadan göndəriləcək/);
+  assert.match(scheduler, /3900 - reportText\.length/);
+  assert.match(schema, /ai_analysis_settings/);
+  assert.match(migration, /CREATE TABLE `ai_daily_analyses`/);
+  assert.match(migration, /PRAGMA optimize/);
+});
