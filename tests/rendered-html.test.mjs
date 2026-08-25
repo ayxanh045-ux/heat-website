@@ -93,6 +93,11 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   assert.match(analysis, /apiKey\.slice\(1, -1\)\.trim\(\)/);
   assert.match(analysis, /\{20,500\}/);
   assert.match(analysis, /responseMimeType: "application\/json"/);
+  assert.match(analysis, /outputLimits = \[4096, 8192\]/);
+  assert.match(analysis, /thinkingConfig: \{ thinkingLevel: "low" \}/);
+  assert.match(analysis, /finishReason === "MAX_TOKENS"/);
+  assert.match(analysis, /part\.thought !== true/);
+  assert.match(analysis, /Gemini iki cəhddə də tam JSON cavabı qaytarmadı/);
   assert.match(analysis, /gemini-3\.6-flash/);
   assert.doesNotMatch(analysis, /temperature:/);
   assert.match(analysis, /aiDailyAnalyses/);

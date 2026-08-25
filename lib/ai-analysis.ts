@@ -203,47 +203,72 @@ function validateGeminiAnalysis(value: unknown): GeminiAnalysis {
 }
 
 async function callGemini(apiKey: string, model: string, prompt: string): Promise<GeminiAnalysis> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          maxOutputTokens: 1200,
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              status: { type: "STRING", enum: ["normal", "attention", "critical"] },
-              executiveSummary: { type: "STRING" },
-              mainFinding: { type: "STRING" },
-              actions: { type: "ARRAY", items: { type: "STRING" }, minItems: 1, maxItems: 3 },
-              savingsOpportunity: { type: "STRING" },
-              caution: { type: "STRING" },
+  const outputLimits = [4096, 8192] as const;
+  for (const [attempt, maxOutputTokens] of outputLimits.entries()) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens,
+            thinkingConfig: { thinkingLevel: "low" },
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                status: { type: "STRING", enum: ["normal", "attention", "critical"] },
+                executiveSummary: { type: "STRING" },
+                mainFinding: { type: "STRING" },
+                actions: { type: "ARRAY", items: { type: "STRING" }, minItems: 1, maxItems: 3 },
+                savingsOpportunity: { type: "STRING" },
+                caution: { type: "STRING" },
+              },
+              required: [
+                "status",
+                "executiveSummary",
+                "mainFinding",
+                "actions",
+                "savingsOpportunity",
+                "caution",
+              ],
             },
-            required: [
-              "status",
-              "executiveSummary",
-              "mainFinding",
-              "actions",
-              "savingsOpportunity",
-              "caution",
-            ],
           },
-        },
-      }),
-      signal: AbortSignal.timeout(25000),
-    },
-  );
-  const result = await response.json() as {
-    error?: { message?: string };
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  if (!response.ok) throw new Error(result.error?.message?.slice(0, 180) || "Gemini sorğusu uğursuz oldu.");
-  const raw = result.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
-  return validateGeminiAnalysis(JSON.parse(raw));
+        }),
+        signal: AbortSignal.timeout(45000),
+      },
+    );
+    const result = await response.json() as {
+      error?: { message?: string };
+      candidates?: Array<{
+        finishReason?: string;
+        content?: { parts?: Array<{ text?: string; thought?: boolean }> };
+      }>;
+    };
+    if (!response.ok) {
+      throw new Error(result.error?.message?.slice(0, 180) || "Gemini sorğusu uğursuz oldu.");
+    }
+    const candidate = result.candidates?.[0];
+    const raw = candidate?.content?.parts
+      ?.filter((part) => part.thought !== true)
+      .map((part) => part.text ?? "")
+      .join("")
+      .trim() ?? "";
+    if (candidate?.finishReason === "MAX_TOKENS" && attempt === 0) continue;
+    if (candidate?.finishReason && candidate.finishReason !== "STOP") {
+      throw new Error(`Gemini cavabı tamamlamadı (${candidate.finishReason}).`);
+    }
+    try {
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+      return validateGeminiAnalysis(JSON.parse(cleaned));
+    } catch {
+      if (attempt === 0) continue;
+      throw new Error("Gemini iki cəhddə də tam JSON cavabı qaytarmadı.");
+    }
+  }
+  throw new Error("Gemini analizi tamamlaya bilmədi.");
 }
 
 function formatCustomerAnalysis(analysis: GeminiAnalysis): string {
