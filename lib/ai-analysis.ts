@@ -295,7 +295,7 @@ ${status}
 ${analysis.executiveSummary}
 
 Ən vacib məsələ
-${analysis.keyFinding}
+${analysis.mainFinding}
 
 Nə etmək lazımdır
 ${actions}
@@ -359,7 +359,9 @@ export async function getOrCreateCustomerDailyAiAnalysis(
   const id = `${customerId}:${localDate}`;
   const db = getDb({ readFromPrimary: true });
   const [existing] = await db.select().from(aiDailyAnalyses).where(eq(aiDailyAnalyses.id, id)).limit(1);
-  if (existing?.status === "ready" && existing.analysisText) return { text: existing.analysisText, generated: false, error: null };
+  if (existing?.status === "ready" && existing.analysisText && !existing.analysisText.includes("undefined")) {
+    return { text: existing.analysisText, generated: false, error: null };
+  }
   try {
     const text = await generateCustomerAiAnalysis(customerId, values, "daily", "compact");
     const updatedAt = new Date().toISOString();
@@ -387,7 +389,7 @@ export async function getOrCreateDemoDailyAiAnalysis(
   const db = getDb({ readFromPrimary: true });
   const [existing] = await db.select().from(aiDailyAnalyses)
     .where(eq(aiDailyAnalyses.id, id)).limit(1);
-  if (existing?.status === "ready" && existing.analysisText) {
+  if (existing?.status === "ready" && existing.analysisText && !existing.analysisText.includes("undefined")) {
     return { text: existing.analysisText, generated: false, error: null };
   }
   try {

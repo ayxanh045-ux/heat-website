@@ -147,6 +147,9 @@ test("customer Telegram reports are simple, customer-scoped and offer detailed c
   assert.match(telegram, /REPORT — CANLI VƏZİYYƏT/);
   assert.match(telegram, /SADƏ İZAH/);
   assert.match(ai, /AI-NİN SADƏ İZAHI/);
+  assert.match(ai, /\$\{analysis\.mainFinding\}/);
+  assert.doesNotMatch(ai, /analysis\.keyFinding/);
+  assert.match(ai, /!existing\.analysisText\.includes\("undefined"\)/);
   assert.match(analysisPackage, /heç başı çıxmayan biznes sahibinin anlayacağı formada/);
   assert.match(analysisPackage, /periodInstruction/);
   assert.match(analysisPackage, /müştərinin HEAT sisteminə ötürülmüş ölçmələri/);
