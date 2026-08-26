@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { customerSecrets } from "@/db/schema";
 import { decryptProvisioningInput } from "@/lib/provisioning";
-import { allowedTelegramChatIds, callTelegram, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
+import { allowedTelegramChatIds, callTelegram, composeDailyTelegramMessage, demoTelegramReply, safeEqual, telegramWebhookSecret } from "@/lib/telegram";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { getCustomerEnergySettings, parseBudgetAmount, parseWorkingHours, updateCustomerEnergySettings } from "@/lib/customer-energy-settings";
 import { generateCustomerAiAnalysis, getOrCreateCustomerDailyAiAnalysis } from "@/lib/ai-analysis";
@@ -55,11 +55,11 @@ export async function POST(request: Request, context: { params: Promise<{ custom
       } else if (command === "/detailreport") {
         reply = demoTelegramReply("/report", values, { parameter, energySettings });
       } else if (command === "/detailanalysis") {
-        reply = "";
+        reply = "📊 REPORT — ƏTRAFLI AI SORĞUSU\n\nDövr: Son 24 saat";
       } else {
         reply = demoTelegramReply(command, values, { parameter, energySettings });
       }
-      if (reply) await callTelegram(botToken, "sendMessage", { chat_id: chatId, text: reply });
+      let outgoingMessage = reply;
       let aiResult = "Bu komanda üçün ayrıca AI analizi tələb olunmur.";
       const analysisRequest = AI_REPORT_COMMANDS[command];
       if (analysisRequest) {
@@ -70,23 +70,17 @@ export async function POST(request: Request, context: { params: Promise<{ custom
             ? await getOrCreateCustomerDailyAiAnalysis(customerId, values)
             : { text: await generateCustomerAiAnalysis(customerId, values, analysisRequest.period, "compact"), error: null };
           if (!analysis.text) throw new Error(analysis.error || "AI analizi hazırda əlçatan deyil.");
-          await callTelegram(botToken, "sendMessage", {
-            chat_id: chatId,
-            text: analysis.text,
-          });
-          aiResult = "Reportdan sonra ayrıca AI analizi göndərildi.";
+          outgoingMessage = composeDailyTelegramMessage(reply, analysis.text);
+          aiResult = "Report və AI analizi eyni mesajda göndərildi.";
           await notifyAdminBot({
             customerId,
             eventType: "customer_ai_analysis_delivered",
-            message: `🤖 HEAT Admin — Müştəriyə AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nDövr: ${analysisRequest.period}\nNəticə: AI analizi uğurla çatdırıldı.`,
+            message: `🤖 HEAT Admin — Müştəriyə AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nDövr: ${analysisRequest.period}\nNəticə: REPORT və AI ANALİZİ eyni mesajda çatdırıldı.`,
           });
         } catch (analysisError) {
           const reason = analysisError instanceof Error ? analysisError.message.slice(0, 180) : "AI analizi yaradılmadı.";
-          aiResult = `Əsas report göndərildi, AI analizi isə hazırlanmadı: ${reason}`;
-          await callTelegram(botToken, "sendMessage", {
-            chat_id: chatId,
-            text: "🤖 AI ANALİZİ\n\nƏsas reportunuz hazırdır. Əlavə AI izahı hazırda yaradıla bilmədi. Bir qədər sonra eyni komandanı yenidən yoxlaya bilərsiniz.",
-          }).catch(() => undefined);
+          aiResult = `Report göndərildi, AI analizi isə hazırlanmadı: ${reason}`;
+          outgoingMessage = composeDailyTelegramMessage(reply, "🤖 AI ANALİZİ\n\nAI izahı hazırda yaradıla bilmədi. Bir qədər sonra eyni komandanı yenidən yoxlaya bilərsiniz.");
           await notifyAdminBot({
             customerId,
             eventType: "customer_ai_analysis_failed",
@@ -94,6 +88,7 @@ export async function POST(request: Request, context: { params: Promise<{ custom
           });
         }
       }
+      await callTelegram(botToken, "sendMessage", { chat_id: chatId, text: outgoingMessage });
       await notifyAdminBot({
         customerId,
         eventType: "customer_command_used",
