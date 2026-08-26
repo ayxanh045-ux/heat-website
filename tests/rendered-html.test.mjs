@@ -113,13 +113,13 @@ test("daily Gemini analysis is encrypted, admin-only, cached and safely appended
   assert.match(panel, /const saveResponse = await fetch\("\/api\/admin-ai\/settings"/);
   assert.match(scheduler, /customer_ai_analysis_generated/);
   assert.match(scheduler, /Əsas enerji reportu uğurla göndərildi/);
-  assert.match(scheduler, /text: analysis\.text/);
+  assert.match(scheduler, /text: customerMessage/);
   assert.match(schema, /ai_analysis_settings/);
   assert.match(migration, /CREATE TABLE `ai_daily_analyses`/);
   assert.match(migration, /PRAGMA optimize/);
 });
 
-test("customer Telegram reports are simple and followed by period-aware AI analysis", async () => {
+test("customer Telegram reports are simple, customer-scoped and offer detailed commands", async () => {
   const [telegram, webhook, scheduler, analysisPackage, ai] = await Promise.all([
     readFile(new URL("../lib/telegram.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/telegram/webhook/[customerId]/route.ts", import.meta.url), "utf8"),
@@ -131,15 +131,19 @@ test("customer Telegram reports are simple and followed by period-aware AI analy
     assert.match(webhook, new RegExp(`"/${command}":`));
   }
   assert.match(webhook, /customer_ai_analysis_delivered/);
-  assert.match(webhook, /generateCustomerAiAnalysis\(customerId, values, analysisPeriod\)/);
+  assert.match(webhook, /generateCustomerAiAnalysis\(customerId, values, analysisRequest\.period/);
   assert.match(webhook, /getOrCreateCustomerDailyAiAnalysis\(customerId, values\)/);
-  assert.match(webhook, /Report və AI analizi iki ayrı mesajla çatdırıldı/);
+  assert.match(webhook, /"\/detailanalysis"/);
+  assert.match(webhook, /"\/detailreport"/);
   assert.match(webhook, /Əsas report uğurla göndərildi/);
-  assert.match(scheduler, /ayrıca ikinci mesajla göndərildi/);
+  assert.match(scheduler, /reportla eyni mesajda göndərildi/);
+  assert.match(scheduler, /customerMessage = `\$\{reportText\}\\n\\n\$\{analysis\.text\}`/);
   assert.doesNotMatch(scheduler, /reportText \+=/);
+  assert.match(telegram, /Daha ətraflı report: \/detailreport/);
+  assert.match(telegram, /Daha ətraflı AI analizi: \/detailanalysis/);
   assert.match(telegram, /REPORT — CANLI VƏZİYYƏT/);
   assert.match(telegram, /SADƏ İZAH/);
-  assert.match(telegram, /AI izahı növbəti mesajda/);
+  assert.match(ai, /AI-NİN SADƏ İZAHI/);
   assert.match(analysisPackage, /heç başı çıxmayan biznes sahibinin anlayacağı formada/);
   assert.match(analysisPackage, /periodInstruction/);
   assert.match(analysisPackage, /müştərinin HEAT sisteminə ötürülmüş ölçmələri/);

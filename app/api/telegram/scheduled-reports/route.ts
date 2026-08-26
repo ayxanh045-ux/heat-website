@@ -73,24 +73,17 @@ export async function POST(request: Request) {
       const energySettings = await getCustomerEnergySettings(vault.customerId);
       const reportText = demoTelegramOwnerSummary(values, energySettings);
       let aiIncluded = false;
-      await callTelegram(values.telegramBotToken, "sendMessage", {
-        chat_id: values.telegramDefaultChatId,
-        text: reportText,
-      });
-      sent += 1;
+      let customerMessage = reportText;
       if (aiSettings.enabled && aiSettings.configured) {
         try {
           const analysis = await getOrCreateDemoDailyAiAnalysis(now);
           if (!analysis.text) throw new Error(analysis.error || "AI analizi yaradılmadı.");
-          await callTelegram(values.telegramBotToken, "sendMessage", {
-            chat_id: values.telegramDefaultChatId,
-            text: analysis.text,
-          });
+          customerMessage = `${reportText}\n\n${analysis.text}`.slice(0, 4000);
           aiIncluded = true;
           await notifyAdminBot({
             customerId: vault.customerId,
             eventType: "customer_ai_analysis_generated",
-            message: `🤖 HEAT Admin — Gündəlik AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nNəticə: Report və AI analizi müştəriyə iki ayrı mesajla çatdırıldı.`,
+            message: `🤖 HEAT Admin — Gündəlik AI analizi hazırlandı\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nModel: ${aiSettings.model}\nNəticə: Qısa report və AI izahı eyni mesajda hazırlandı.`,
           });
         } catch (analysisError) {
           await notifyAdminBot({
@@ -100,10 +93,15 @@ export async function POST(request: Request) {
           });
         }
       }
+      await callTelegram(values.telegramBotToken, "sendMessage", {
+        chat_id: values.telegramDefaultChatId,
+        text: customerMessage,
+      });
+      sent += 1;
       await notifyAdminBot({
         customerId: vault.customerId,
         eventType: "customer_report_delivered",
-        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nAI analizi: ${aiIncluded ? "ayrıca ikinci mesajla göndərildi" : "göndərilmədi"}\nNəticə: Müştəri Telegram reportunu qəbul etdi.`,
+        message: `✅ HEAT Admin — Avtomatik report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nAI analizi: ${aiIncluded ? "reportla eyni mesajda göndərildi" : "göndərilmədi"}\nNəticə: Müştəri qısa və anlaşıqlı Telegram reportunu qəbul etdi.`,
       });
     } catch (error) {
       await db.delete(telegramReportDeliveries).where(eq(telegramReportDeliveries.id, id));

@@ -279,12 +279,29 @@ function analysisPeriodTitle(period: EnergyAnalysisPeriod): string {
   return "GÜNDƏLİK AI ANALİZİ";
 }
 
-function formatCustomerAnalysis(analysis: GeminiAnalysis, period: EnergyAnalysisPeriod): string {
+type AnalysisDetail = "compact" | "detailed";
+
+function formatCustomerAnalysis(analysis: GeminiAnalysis, period: EnergyAnalysisPeriod, detail: AnalysisDetail = "detailed"): string {
   const status = analysis.status === "critical"
     ? "🔴 Təcili diqqət"
     : analysis.status === "attention"
       ? "🟠 Diqqət tələb edir"
       : "🟢 Normal";
+  if (detail === "compact") {
+    const actions = analysis.actions.slice(0, 2).map((item) => `• ${item}`).join("\n");
+    return `🤖 AI-NİN SADƏ İZAHI
+${status}
+
+${analysis.executiveSummary}
+
+Ən vacib məsələ
+${analysis.keyFinding}
+
+Nə etmək lazımdır
+${actions}
+
+Mümkün qənaət: ${analysis.savingsOpportunity}`;
+  }
   return `🤖 ${analysisPeriodTitle(period)}
 
 Vəziyyət: ${status}
@@ -307,26 +324,27 @@ ${analysis.caution}
 Bu avtomatik ilkin analizdir; elektrik təhlükəsizliyi diaqnozu deyil.`;
 }
 
-export async function generateDemoAiAnalysis(period: EnergyAnalysisPeriod = "daily"): Promise<string> {
+export async function generateDemoAiAnalysis(period: EnergyAnalysisPeriod = "daily", detail: AnalysisDetail = "detailed"): Promise<string> {
   const settings = await loadAiAnalysisSettings();
   if (!settings.enabled || !settings.configured || !settings.apiKey) {
     throw new Error("AI analizi aktiv deyil və ya Gemini API key saxlanmayıb.");
   }
   const prompt = await buildDemoEnergyAnalysisPackage(new Date(), period);
-  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period);
+  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period, detail);
 }
 
 export async function generateCustomerAiAnalysis(
   customerId: string,
   values: ProvisioningInput,
   period: EnergyAnalysisPeriod = "daily",
+  detail: AnalysisDetail = "detailed",
 ): Promise<string> {
   const settings = await loadAiAnalysisSettings();
   if (!settings.enabled || !settings.configured || !settings.apiKey) {
     throw new Error("AI analizi aktiv deyil və ya Gemini API key saxlanmayıb.");
   }
   const prompt = await buildCustomerEnergyAnalysisPackage(customerId, values, new Date(), period);
-  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period);
+  return formatCustomerAnalysis(await callGemini(settings.apiKey, settings.model, prompt), period, detail);
 }
 
 export async function getOrCreateCustomerDailyAiAnalysis(
@@ -343,7 +361,7 @@ export async function getOrCreateCustomerDailyAiAnalysis(
   const [existing] = await db.select().from(aiDailyAnalyses).where(eq(aiDailyAnalyses.id, id)).limit(1);
   if (existing?.status === "ready" && existing.analysisText) return { text: existing.analysisText, generated: false, error: null };
   try {
-    const text = await generateCustomerAiAnalysis(customerId, values, "daily");
+    const text = await generateCustomerAiAnalysis(customerId, values, "daily", "compact");
     const updatedAt = new Date().toISOString();
     await db.insert(aiDailyAnalyses).values({ id, customerId, localDate, status: "ready", analysisText: text, errorMessage: null, model: settings.model, updatedAt })
       .onConflictDoUpdate({ target: aiDailyAnalyses.id, set: { status: "ready", analysisText: text, errorMessage: null, model: settings.model, updatedAt } });
@@ -373,7 +391,7 @@ export async function getOrCreateDemoDailyAiAnalysis(
     return { text: existing.analysisText, generated: false, error: null };
   }
   try {
-    const text = await generateDemoAiAnalysis();
+    const text = await generateDemoAiAnalysis("daily", "compact");
     const updatedAt = new Date().toISOString();
     await db.insert(aiDailyAnalyses).values({
       id,

@@ -12,6 +12,8 @@ export const TELEGRAM_COMMANDS = [
   { command: "day", description: "Seçilmiş gün: /day YYYY-MM-DD" },
   { command: "weekly", description: "Həftəlik report + AI analizi" },
   { command: "monthly", description: "Aylıq report + AI analizi" },
+  { command: "detailreport", description: "Daha ətraflı enerji reportu" },
+  { command: "detailanalysis", description: "Daha ətraflı AI analizi" },
   { command: "devices", description: "Qoşulmuş cihazlar" },
   { command: "savings", description: "Qənaət göstəricisi" },
   { command: "budget", description: "Aylıq büdcə vəziyyəti" },
@@ -83,11 +85,8 @@ export function demoTelegramOwnerSummary(
   const previousCost = previousKwh * tariff;
   const costDifference = currentCost - previousCost;
   const changePercent = Number(metrics.changePercent);
-  const monthActualCost = Number(metrics.actualEnergyKwh) * tariff;
   const projectedCost = Number(metrics.projectedKwh.replace(/,/g, "")) * tariff;
   const budget = energySettings.monthlyBudgetAzn ?? 500;
-  const afterHoursKwh = currentKwh * 0.09;
-  const afterHoursCost = afterHoursKwh * tariff;
   const peakKw = Number(metrics.peakPowerKw);
   const peakThresholdKw = energySettings.peakThresholdKw ?? 10;
 
@@ -105,37 +104,24 @@ export function demoTelegramOwnerSummary(
   }
 
   const arrow = changePercent > 0 ? "⬆️" : changePercent < 0 ? "⬇️" : "➡️";
-  return `⚡ HEAT
-GÜNDƏLİK ENERJİ HESABATI
+  return `⚡ HEAT — GÜNDƏLİK NƏTİCƏ
 
 🏢 Obyekt: ${values.siteName}
-📅 Hesabat dövrü: Son 24 saat
-🕒 Hazırlanma vaxtı: ${metrics.dateKey} ${metrics.time}
+📅 Son 24 saat
 
-SİSTEMİN VƏZİYYƏTİ
 ${state}
 
-💰 XƏRC VƏ SƏRFİYYAT
-Son 24 saat: ${currentCost.toFixed(2)} AZN
-Enerji sərfiyyatı: ${currentKwh.toFixed(1)} kWh
+💳 Xərc: ${currentCost.toFixed(2)} AZN
+⚡ İstifadə: ${currentKwh.toFixed(1)} kWh
+${arrow} Dünənlə fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%)
+🔮 Ay sonu xərc proqnozu: ${projectedCost.toFixed(2)} AZN
+🎯 Aylıq büdcə: ${budget.toFixed(2)} AZN
 
-📈 MÜQAYİSƏ VƏ PROQNOZ
-Əvvəlki 24 saatla fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%) ${arrow}
-Bu ay indiyədək: ${monthActualCost.toFixed(2)} AZN
-Ay sonu xərc proqnozu: ${projectedCost.toFixed(2)} AZN
-Aylıq büdcə: ${budget.toFixed(2)} AZN
-
-⚙️ İŞ REJİMİ
-İş saatından kənar xərc: ${afterHoursCost.toFixed(2)} AZN (9.0%)
-Ən yüksək yük: ${peakKw.toFixed(2)} kW · ${metrics.peakTime}
-
-💡 TÖVSİYƏ OLUNAN ADDIM
+💡 Bu gün üçün əsas addım
 ${action}
 
-🔎 Ətraflı hesabat: /report
-Digər baxışlar: /last24h · /budget · /peaks · /afterhours
-🤖 Bu reportun sadə AI izahı növbəti mesajda göndəriləcək.
-🔔 Göndəriş vaxtları: ${values.telegramReportTimes.split(",").map((item) => item.trim()).filter(Boolean).join(" · ")} (${values.timezone})`;
+📊 Daha ətraflı report: /detailreport
+🤖 Daha ətraflı AI analizi: /detailanalysis`;
 }
 
 export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string; energySettings?: Partial<EnergySettings> } = {}): string {

@@ -12,12 +12,13 @@ type TelegramUpdate = {
   message?: { chat?: { id?: number | string }; text?: string };
 };
 
-const AI_REPORT_COMMANDS: Partial<Record<string, EnergyAnalysisPeriod>> = {
-  "/status": "status",
-  "/report": "daily",
-  "/last24h": "daily",
-  "/weekly": "weekly",
-  "/monthly": "monthly",
+const AI_REPORT_COMMANDS: Partial<Record<string, { period: EnergyAnalysisPeriod; detailed?: boolean }>> = {
+  "/status": { period: "status" },
+  "/report": { period: "daily" },
+  "/last24h": { period: "daily" },
+  "/weekly": { period: "weekly" },
+  "/monthly": { period: "monthly" },
+  "/detailanalysis": { period: "daily", detailed: true },
 };
 
 export async function POST(request: Request, context: { params: Promise<{ customerId: string }> }) {
@@ -51,20 +52,23 @@ export async function POST(request: Request, context: { params: Promise<{ custom
         const hours = parseWorkingHours(parts[1] ?? "", parts[2] ?? "");
         energySettings = await updateCustomerEnergySettings(customerId, hours);
         reply = `✅ İş saatları yeniləndi\n\nYeni iş rejimi: ${energySettings.workingHoursStart}–${energySettings.workingHoursEnd}\n\nİş saatından sonrakı sərfiyyat bundan sonra bu rejimə əsasən hesablanacaq. /afterhours ilə baxa bilərsiniz.`;
+      } else if (command === "/detailreport") {
+        reply = demoTelegramReply("/report", values, { parameter, energySettings });
+      } else if (command === "/detailanalysis") {
+        reply = "";
       } else {
         reply = demoTelegramReply(command, values, { parameter, energySettings });
       }
-      await callTelegram(botToken, "sendMessage", {
-        chat_id: chatId,
-        text: reply,
-      });
+      if (reply) await callTelegram(botToken, "sendMessage", { chat_id: chatId, text: reply });
       let aiResult = "Bu komanda üçün ayrıca AI analizi tələb olunmur.";
-      const analysisPeriod = AI_REPORT_COMMANDS[command];
-      if (analysisPeriod) {
+      const analysisRequest = AI_REPORT_COMMANDS[command];
+      if (analysisRequest) {
         try {
-          const analysis = analysisPeriod === "daily"
+          const analysis = analysisRequest.detailed
+            ? { text: await generateCustomerAiAnalysis(customerId, values, analysisRequest.period, "detailed"), error: null }
+            : analysisRequest.period === "daily"
             ? await getOrCreateCustomerDailyAiAnalysis(customerId, values)
-            : { text: await generateCustomerAiAnalysis(customerId, values, analysisPeriod), error: null };
+            : { text: await generateCustomerAiAnalysis(customerId, values, analysisRequest.period, "compact"), error: null };
           if (!analysis.text) throw new Error(analysis.error || "AI analizi hazırda əlçatan deyil.");
           await callTelegram(botToken, "sendMessage", {
             chat_id: chatId,
@@ -74,7 +78,7 @@ export async function POST(request: Request, context: { params: Promise<{ custom
           await notifyAdminBot({
             customerId,
             eventType: "customer_ai_analysis_delivered",
-            message: `🤖 HEAT Admin — Müştəriyə AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nDövr: ${analysisPeriod}\nNəticə: Report və AI analizi iki ayrı mesajla çatdırıldı.`,
+            message: `🤖 HEAT Admin — Müştəriyə AI analizi göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: ${command}\nDövr: ${analysisRequest.period}\nNəticə: AI analizi uğurla çatdırıldı.`,
           });
         } catch (analysisError) {
           const reason = analysisError instanceof Error ? analysisError.message.slice(0, 180) : "AI analizi yaradılmadı.";
