@@ -72,12 +72,13 @@ export async function POST(request: Request) {
       const energySettings = await getCustomerEnergySettings(vault.customerId);
       const reportText = demoTelegramOwnerSummary(values, energySettings);
       let aiIncluded = false;
-      let customerMessage = reportText;
+      const detailCommands = "📊 Daha ətraflı report: /detailreport\n🤖 Daha ətraflı AI analizi: /detailanalysis";
+      let customerMessage = `${reportText}\n\n${detailCommands}`;
       if (aiSettings.enabled && aiSettings.configured) {
         try {
           const analysis = await getOrCreateCustomerDailyAiAnalysis(vault.customerId, values, now);
           if (!analysis.text) throw new Error(analysis.error || "AI analizi yaradılmadı.");
-          customerMessage = `${reportText}\n\n${analysis.text}`.slice(0, 4000);
+          customerMessage = `${reportText}\n\n${analysis.text}\n\n${detailCommands}`.slice(0, 4000);
           aiIncluded = true;
           await notifyAdminBot({
             customerId: vault.customerId,

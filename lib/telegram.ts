@@ -87,41 +87,17 @@ export function demoTelegramOwnerSummary(
   const changePercent = Number(metrics.changePercent);
   const projectedCost = Number(metrics.projectedKwh.replace(/,/g, "")) * tariff;
   const budget = energySettings.monthlyBudgetAzn ?? 500;
-  const peakKw = Number(metrics.peakPowerKw);
-  const peakThresholdKw = energySettings.peakThresholdKw ?? 10;
-
-  let state = "🟢 Nəzarətdədir";
-  let action = "Xüsusi tədbir tələb olunmur; gündəlik nəzarəti davam etdirin.";
-  if (projectedCost > budget) {
-    state = "🔴 Ay sonu büdcə riski var";
-    action = "Ən çox xərc yaradan saatları /peaks ilə yoxlayın və yüksək güclü cihazları növbəli işlədin.";
-  } else if (changePercent >= 15) {
-    state = "🟠 Sərfiyyat nəzərəçarpacaq dərəcədə artıb";
-    action = "Dünəndən fərqli işləyən və ya açıq qalan cihazları yoxlayın.";
-  } else if (peakKw > peakThresholdKw) {
-    state = "🟠 Pik yük həddi keçilib";
-    action = "Yüksək güclü cihazları eyni anda yox, 10–15 dəqiqə fərqlə işə salın.";
-  }
 
   const arrow = changePercent > 0 ? "⬆️" : changePercent < 0 ? "⬇️" : "➡️";
-  return `⚡ HEAT — GÜNDƏLİK NƏTİCƏ
+  return `📊 REPORT — SON 24 SAAT
 
 🏢 Obyekt: ${values.siteName}
-📅 Son 24 saat
-
-${state}
 
 💳 Xərc: ${currentCost.toFixed(2)} AZN
 ⚡ İstifadə: ${currentKwh.toFixed(1)} kWh
 ${arrow} Dünənlə fərq: ${costDifference >= 0 ? "+" : ""}${costDifference.toFixed(2)} AZN (${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(1)}%)
 🔮 Ay sonu xərc proqnozu: ${projectedCost.toFixed(2)} AZN
-🎯 Aylıq büdcə: ${budget.toFixed(2)} AZN
-
-💡 Bu gün üçün əsas addım
-${action}
-
-📊 Daha ətraflı report: /detailreport
-🤖 Daha ətraflı AI analizi: /detailanalysis`;
+🎯 Aylıq büdcə: ${budget.toFixed(2)} AZN`;
 }
 
 export function demoTelegramReply(command: string, values: ProvisioningInput, options: { automatic?: boolean; parameter?: string; energySettings?: Partial<EnergySettings> } = {}): string {
