@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminStatusDigestDeliveries, customers, customerSecrets, customerSystemHealth, telegramReportDeliveries } from "@/db/schema";
-import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput } from "@/lib/provisioning";
 import { callTelegram, demoTelegramOwnerSummary } from "@/lib/telegram";
 import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
@@ -10,7 +9,7 @@ import { getAdminUser } from "@/lib/admin-auth";
 import { globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { ADMIN_DIGEST_TIMES, buildAdminHealthDigest } from "@/lib/admin-health-digest";
-import { getOrCreateDemoDailyAiAnalysis, loadAiAnalysisSettings } from "@/lib/ai-analysis";
+import { getOrCreateCustomerDailyAiAnalysis, loadAiAnalysisSettings } from "@/lib/ai-analysis";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +50,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const vaults = await db.select().from(customerSecrets).where(eq(customerSecrets.customerId, DEMO_CUSTOMER.id)).limit(1);
+  const vaults = await db.select().from(customerSecrets);
   for (const vault of vaults) {
     let values;
     try { values = await decryptProvisioningInput(vault.encryptedPayload); } catch { continue; }
@@ -76,7 +75,7 @@ export async function POST(request: Request) {
       let customerMessage = reportText;
       if (aiSettings.enabled && aiSettings.configured) {
         try {
-          const analysis = await getOrCreateDemoDailyAiAnalysis(now);
+          const analysis = await getOrCreateCustomerDailyAiAnalysis(vault.customerId, values, now);
           if (!analysis.text) throw new Error(analysis.error || "AI analizi yaradılmadı.");
           customerMessage = `${reportText}\n\n${analysis.text}`.slice(0, 4000);
           aiIncluded = true;

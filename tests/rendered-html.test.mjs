@@ -138,6 +138,8 @@ test("customer Telegram reports are simple, customer-scoped and offer detailed c
   assert.match(webhook, /Əsas report uğurla göndərildi/);
   assert.match(scheduler, /reportla eyni mesajda göndərildi/);
   assert.match(scheduler, /customerMessage = `\$\{reportText\}\\n\\n\$\{analysis\.text\}`/);
+  assert.match(scheduler, /getOrCreateCustomerDailyAiAnalysis\(vault\.customerId, values, now\)/);
+  assert.doesNotMatch(scheduler, /customerSecrets\.customerId, DEMO_CUSTOMER\.id/);
   assert.doesNotMatch(scheduler, /reportText \+=/);
   assert.match(telegram, /Daha ətraflı report: \/detailreport/);
   assert.match(telegram, /Daha ətraflı AI analizi: \/detailanalysis/);
