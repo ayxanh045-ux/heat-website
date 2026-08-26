@@ -9,7 +9,7 @@ import { generateCustomerAiAnalysis, getOrCreateCustomerDailyAiAnalysis } from "
 import type { EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
 
 type TelegramUpdate = {
-  message?: { chat?: { id?: number | string }; text?: string };
+  message?: { message_id?: number; chat?: { id?: number | string }; text?: string };
 };
 
 const AI_REPORT_COMMANDS: Partial<Record<string, { period: EnergyAnalysisPeriod; detailed?: boolean }>> = {
@@ -41,6 +41,32 @@ export async function POST(request: Request, context: { params: Promise<{ custom
     const parts = rawText.split(/\s+/);
     const command = rawText.startsWith("/") ? parts[0].split("@", 1)[0].toLowerCase() : rawText;
     const parameter = parts[1]?.trim();
+    if (command === "/clear") {
+      const commandMessageId = update.message?.message_id;
+      if (!Number.isInteger(commandMessageId) || !commandMessageId) {
+        await callTelegram(botToken, "sendMessage", { chat_id: chatId, text: "❌ Mesajları silmək mümkün olmadı." });
+        return Response.json({ ok: true });
+      }
+      const firstMessageId = Math.max(1, commandMessageId - 99);
+      const messageIds = Array.from({ length: commandMessageId - firstMessageId + 1 }, (_, index) => firstMessageId + index);
+      try {
+        await callTelegram(botToken, "deleteMessages", { chat_id: chatId, message_ids: messageIds });
+        await notifyAdminBot({
+          customerId,
+          eventType: "customer_chat_cleared",
+          message: `🧹 HEAT Admin — Telegram söhbəti təmizləndi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: /clear\nNəticə: Telegram qaydalarına uyğun son 100-ə qədər mesaj üçün silmə əmri icra edildi.`,
+        });
+      } catch (clearError) {
+        const reason = clearError instanceof Error ? clearError.message.slice(0, 180) : "Telegram mesajları silmədi.";
+        await callTelegram(botToken, "sendMessage", { chat_id: chatId, text: `❌ Mesajları silmək mümkün olmadı. ${reason}` }).catch(() => undefined);
+        await notifyAdminBot({
+          customerId,
+          eventType: "customer_chat_clear_failed",
+          message: `⚠️ HEAT Admin — Telegram söhbəti təmizlənmədi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nXəta: ${reason}`,
+        });
+      }
+      return Response.json({ ok: true });
+    }
     try {
       let energySettings = await getCustomerEnergySettings(customerId);
       let reply: string;

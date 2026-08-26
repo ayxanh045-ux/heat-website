@@ -133,6 +133,10 @@ test("customer Telegram reports are simple, customer-scoped and offer detailed c
   assert.match(webhook, /customer_ai_analysis_delivered/);
   assert.match(webhook, /outgoingMessage = composeDailyTelegramMessage\(reply, analysis\.text\)/);
   assert.match(webhook, /REPORT və AI ANALİZİ eyni mesajda çatdırıldı/);
+  assert.match(telegram, /command: "clear"/);
+  assert.match(webhook, /callTelegram\(botToken, "deleteMessages"/);
+  assert.match(webhook, /commandMessageId - 99/);
+  assert.match(webhook, /customer_chat_cleared/);
   assert.match(webhook, /generateCustomerAiAnalysis\(customerId, values, analysisRequest\.period/);
   assert.match(webhook, /getOrCreateCustomerDailyAiAnalysis\(customerId, values\)/);
   assert.match(webhook, /"\/detailanalysis"/);

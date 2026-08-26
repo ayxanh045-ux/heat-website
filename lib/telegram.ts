@@ -14,6 +14,7 @@ export const TELEGRAM_COMMANDS = [
   { command: "monthly", description: "Aylıq report + AI analizi" },
   { command: "detailreport", description: "Daha ətraflı enerji reportu" },
   { command: "detailanalysis", description: "Daha ətraflı AI analizi" },
+  { command: "clear", description: "Son mesajları söhbətdən sil" },
   { command: "devices", description: "Qoşulmuş cihazlar" },
   { command: "savings", description: "Qənaət göstəricisi" },
   { command: "budget", description: "Aylıq büdcə vəziyyəti" },
