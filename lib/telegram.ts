@@ -28,6 +28,12 @@ export const TELEGRAM_COMMANDS = [
   { command: "help", description: "Komandaları göstər" },
 ] as const;
 
+const TELEGRAM_DETAIL_COMMANDS = "📊 Daha ətraflı report: /detailreport\n🤖 Daha ətraflı AI analizi: /detailanalysis";
+
+export function composeDailyTelegramMessage(reportText: string, analysisText?: string | null): string {
+  return `${reportText}${analysisText ? `\n\n${analysisText}` : ""}\n\n${TELEGRAM_DETAIL_COMMANDS}`.slice(0, 4000);
+}
+
 export function allowedTelegramChatIds(values: ProvisioningInput): string[] {
   return (values.telegramAllowedChatIds ?? "").split(",").map((id) => id.trim()).filter(Boolean);
 }

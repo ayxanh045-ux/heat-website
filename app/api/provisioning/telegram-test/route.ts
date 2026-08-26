@@ -4,8 +4,9 @@ import { customerSecrets } from "@/db/schema";
 import { getAdminUser } from "@/lib/admin-auth";
 import { DEMO_CUSTOMER } from "@/lib/demo-customer";
 import { decryptProvisioningInput, globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
-import { demoTelegramAlert, demoTelegramOwnerSummary } from "@/lib/telegram";
+import { composeDailyTelegramMessage, demoTelegramAlert, demoTelegramOwnerSummary } from "@/lib/telegram";
 import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
+import { getOrCreateCustomerDailyAiAnalysis } from "@/lib/ai-analysis";
 
 export async function POST(request: Request) {
   const adminRequest = requestIsSameOrigin(request) && Boolean(await getAdminUser());
@@ -24,11 +25,15 @@ export async function POST(request: Request) {
     const energySettings = customerId === DEMO_CUSTOMER.id
       ? await getCustomerEnergySettings(customerId)
       : undefined;
-    const text = customerId === DEMO_CUSTOMER.id
+    let text = customerId === DEMO_CUSTOMER.id
       ? scenario === "peak" || scenario === "anomaly"
         ? demoTelegramAlert(scenario, values)
         : demoTelegramOwnerSummary(values, energySettings)
       : `✅ HEAT test bildirişi\n\n${values.customerName}\n${values.siteName}\n\nTelegram bağlantısı uğurla işləyir.`;
+    if (scenario === "report") {
+      const analysis = await getOrCreateCustomerDailyAiAnalysis(customerId, values);
+      text = composeDailyTelegramMessage(text, analysis.text);
+    }
     const telegram = await fetch(`https://api.telegram.org/bot${values.telegramBotToken}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },

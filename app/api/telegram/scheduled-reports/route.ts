@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminStatusDigestDeliveries, customers, customerSecrets, customerSystemHealth, telegramReportDeliveries } from "@/db/schema";
 import { decryptProvisioningInput } from "@/lib/provisioning";
-import { callTelegram, demoTelegramOwnerSummary } from "@/lib/telegram";
+import { callTelegram, composeDailyTelegramMessage, demoTelegramOwnerSummary } from "@/lib/telegram";
 import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
 import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/telegram-scheduler";
 import { getAdminUser } from "@/lib/admin-auth";
@@ -72,13 +72,12 @@ export async function POST(request: Request) {
       const energySettings = await getCustomerEnergySettings(vault.customerId);
       const reportText = demoTelegramOwnerSummary(values, energySettings);
       let aiIncluded = false;
-      const detailCommands = "📊 Daha ətraflı report: /detailreport\n🤖 Daha ətraflı AI analizi: /detailanalysis";
-      let customerMessage = `${reportText}\n\n${detailCommands}`;
+      let customerMessage = composeDailyTelegramMessage(reportText);
       if (aiSettings.enabled && aiSettings.configured) {
         try {
           const analysis = await getOrCreateCustomerDailyAiAnalysis(vault.customerId, values, now);
           if (!analysis.text) throw new Error(analysis.error || "AI analizi yaradılmadı.");
-          customerMessage = `${reportText}\n\n${analysis.text}\n\n${detailCommands}`.slice(0, 4000);
+          customerMessage = composeDailyTelegramMessage(reportText, analysis.text);
           aiIncluded = true;
           await notifyAdminBot({
             customerId: vault.customerId,
