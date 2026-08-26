@@ -2,16 +2,27 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminStatusDigestDeliveries, customers, customerSecrets, customerSystemHealth, telegramReportDeliveries } from "@/db/schema";
 import { decryptProvisioningInput } from "@/lib/provisioning";
-import { callTelegram, composeDailyTelegramMessage, demoTelegramOwnerSummary } from "@/lib/telegram";
+import { callTelegram, composeDailyTelegramMessage, demoTelegramOwnerSummary, demoTelegramReply } from "@/lib/telegram";
 import { getCustomerEnergySettings } from "@/lib/customer-energy-settings";
 import { dueScheduledTime, localDateAndTime, scheduledDeliveryKey } from "@/lib/telegram-scheduler";
 import { getAdminUser } from "@/lib/admin-auth";
 import { globalAgentIsAuthorized, requestIsSameOrigin } from "@/lib/provisioning";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { ADMIN_DIGEST_TIMES, buildAdminHealthDigest } from "@/lib/admin-health-digest";
-import { getOrCreateCustomerDailyAiAnalysis, loadAiAnalysisSettings } from "@/lib/ai-analysis";
+import { generateCustomerAiAnalysis, getOrCreateCustomerDailyAiAnalysis, loadAiAnalysisSettings } from "@/lib/ai-analysis";
 
 export const dynamic = "force-dynamic";
+
+function isSunday(dateKey: string): boolean {
+  return new Date(`${dateKey}T12:00:00Z`).getUTCDay() === 0;
+}
+
+function isLastDayOfMonth(dateKey: string): boolean {
+  const date = new Date(`${dateKey}T12:00:00Z`);
+  const month = date.getUTCMonth();
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.getUTCMonth() !== month;
+}
 
 export async function POST(request: Request) {
   const adminRequest = requestIsSameOrigin(request) && Boolean(await getAdminUser());
@@ -109,6 +120,45 @@ export async function POST(request: Request) {
         eventType: "customer_report_failed",
         message: `❌ HEAT Admin — Avtomatik report xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nPlanlaşdırılan vaxt: ${dueTime} (${values.timezone})\nXəta: ${error instanceof Error ? error.message.slice(0, 180) : "Telegram reportu göndərilmədi."}`,
       });
+    }
+
+    if (dueTime !== aiSettings.reportTime || !aiSettings.enabled || !aiSettings.configured) continue;
+    const periods = [
+      aiSettings.weeklyEnabled && isSunday(local.date) ? "weekly" : null,
+      aiSettings.monthlyEnabled && isLastDayOfMonth(local.date) ? "monthly" : null,
+    ].filter((period): period is "weekly" | "monthly" => Boolean(period));
+    for (const period of periods) {
+      const periodName = period === "weekly" ? "Həftəlik" : "Aylıq";
+      const periodId = `${vault.customerId}:${period}:${local.date}:${dueTime}`;
+      const periodScheduledFor = `${local.date}T${dueTime}[${period}]`;
+      const periodClaimed = await db.insert(telegramReportDeliveries).values({
+        id: periodId,
+        customerId: vault.customerId,
+        scheduledFor: periodScheduledFor,
+      }).onConflictDoNothing().returning({ id: telegramReportDeliveries.id });
+      if (periodClaimed.length === 0) continue;
+      try {
+        const energySettings = await getCustomerEnergySettings(vault.customerId);
+        const reportText = demoTelegramReply(period === "weekly" ? "/weekly" : "/monthly", values, { energySettings });
+        const analysisText = await generateCustomerAiAnalysis(vault.customerId, values, period, "compact");
+        await callTelegram(values.telegramBotToken, "sendMessage", {
+          chat_id: values.telegramDefaultChatId,
+          text: composeDailyTelegramMessage(reportText, analysisText),
+        });
+        sent += 1;
+        await notifyAdminBot({
+          customerId: vault.customerId,
+          eventType: `customer_${period}_report_delivered`,
+          message: `✅ HEAT Admin — ${periodName} report göndərildi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nVaxt: ${dueTime} (${values.timezone})\nNəticə: REPORT və AI ANALİZİ eyni Telegram mesajında çatdırıldı.`,
+        });
+      } catch (error) {
+        await db.delete(telegramReportDeliveries).where(eq(telegramReportDeliveries.id, periodId));
+        await notifyAdminBot({
+          customerId: vault.customerId,
+          eventType: `customer_${period}_report_failed`,
+          message: `❌ HEAT Admin — ${periodName} report xətası\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nXəta: ${error instanceof Error ? error.message.slice(0, 180) : "Report göndərilmədi."}`,
+        });
+      }
     }
   }
 

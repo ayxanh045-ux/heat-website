@@ -6,6 +6,8 @@ import styles from "./ai-analysis-panel.module.css";
 
 type Settings = {
   enabled: boolean;
+  weeklyEnabled: boolean;
+  monthlyEnabled: boolean;
   reportTime: string;
   model: string;
   configured: boolean;
@@ -13,6 +15,8 @@ type Settings = {
 
 const INITIAL: Settings = {
   enabled: false,
+  weeklyEnabled: false,
+  monthlyEnabled: false,
   reportTime: "09:00",
   model: "gemini-3.6-flash",
   configured: false,
@@ -47,7 +51,7 @@ export function AiAnalysisPanel() {
       const response = await fetch("/api/admin-ai/settings", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ enabled: settings.enabled, reportTime: settings.reportTime, apiKey }),
+        body: JSON.stringify({ enabled: settings.enabled, weeklyEnabled: settings.weeklyEnabled, monthlyEnabled: settings.monthlyEnabled, reportTime: settings.reportTime, apiKey }),
       });
       const result = await response.json() as Settings & { error?: string };
       if (!response.ok) throw new Error(result.error || "Ayarlar saxlanmadı.");
@@ -64,7 +68,7 @@ export function AiAnalysisPanel() {
       const saveResponse = await fetch("/api/admin-ai/settings", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ enabled: settings.enabled, reportTime: settings.reportTime, apiKey }),
+        body: JSON.stringify({ enabled: settings.enabled, weeklyEnabled: settings.weeklyEnabled, monthlyEnabled: settings.monthlyEnabled, reportTime: settings.reportTime, apiKey }),
       });
       const saved = await saveResponse.json() as Settings & { error?: string };
       if (!saveResponse.ok) throw new Error(saved.error || "Ayarlar saxlanmadı.");
@@ -81,7 +85,7 @@ export function AiAnalysisPanel() {
   return <section className={styles.panel} id="ai-analysis">
     <header className={styles.header}>
       <span className={styles.icon}><BrainCircuit size={23} /></span>
-      <div><p>AVTOMATİK ANALİZ</p><h2>AI enerji analizi</h2><span>Demo hesabının gündəlik göstəricilərini analiz edib Telegram reportuna əlavə edir.</span></div>
+      <div><p>AVTOMATİK ANALİZ</p><h2>AI enerji analizi</h2><span>Gündəlik reportlara AI izahı əlavə edir, həftəlik və aylıq yekunları ayrıca göndərə bilir.</span></div>
       <label className={styles.switch}><input type="checkbox" checked={settings.enabled} onChange={(event) => setSettings((current) => ({ ...current, enabled: event.target.checked }))} disabled={loading} /><i /><b>{settings.enabled ? "Aktiv" : "Deaktiv"}</b></label>
     </header>
     {loading ? <div className={styles.loading}><Loader2 className="spin" size={18} /> Ayarlar yüklənir...</div> : <>
@@ -89,6 +93,10 @@ export function AiAnalysisPanel() {
         <label><span>Gemini API key</span><div className={styles.secret}><input value={apiKey} onChange={(event) => setApiKey(event.target.value)} type={visible ? "text" : "password"} autoComplete="off" placeholder={settings.configured ? "Saxlanılıb — dəyişmək üçün yeni key yazın" : "AIza..."} /><button type="button" onClick={() => setVisible((value) => !value)} aria-label={visible ? "Açarı gizlət" : "Açarı göstər"}>{visible ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
         <label><span>Gündəlik AI report saatı — Bakı vaxtı</span><input type="time" value={settings.reportTime} onChange={(event) => setSettings((current) => ({ ...current, reportTime: event.target.value }))} /></label>
         <label><span>Analiz modeli</span><input value={settings.model} disabled /></label>
+      </div>
+      <div className={styles.cadence}>
+        <label className={styles.switch}><input type="checkbox" checked={settings.weeklyEnabled} onChange={(event) => setSettings((current) => ({ ...current, weeklyEnabled: event.target.checked }))} /><i /><b>Həftəlik report — hər bazar günü</b></label>
+        <label className={styles.switch}><input type="checkbox" checked={settings.monthlyEnabled} onChange={(event) => setSettings((current) => ({ ...current, monthlyEnabled: event.target.checked }))} /><i /><b>Aylıq report — ayın son günü</b></label>
       </div>
       <div className={styles.security}><ShieldCheck size={17} /><span>API key şifrəli saxlanır və bir daha brauzerə qaytarılmır. Test düyməsi cari ayarları avtomatik saxlayır. Gemini-yə yalnız enerji göstəriciləri və məkan konteksti göndərilir.</span></div>
       {error && <div className={styles.error} role="alert">{error}</div>}

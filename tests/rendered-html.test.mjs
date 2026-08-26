@@ -156,3 +156,22 @@ test("customer Telegram reports are simple, customer-scoped and offer detailed c
   assert.match(ai, /HƏFTƏLİK AI ANALİZİ/);
   assert.match(ai, /AYLIQ AI ANALİZİ/);
 });
+
+test("weekly and month-end Telegram reports are admin-controlled and include AI in one message", async () => {
+  const [panel, settingsRoute, scheduler, migration] = await Promise.all([
+    readFile(new URL("../components/admin/ai-analysis-panel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin-ai/settings/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/telegram/scheduled-reports/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0014_slippery_karen_page.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(panel, /Həftəlik report — hər bazar günü/);
+  assert.match(panel, /Aylıq report — ayın son günü/);
+  assert.match(settingsRoute, /weeklyEnabled: settings\.weeklyEnabled/);
+  assert.match(settingsRoute, /monthlyEnabled: settings\.monthlyEnabled/);
+  assert.match(scheduler, /aiSettings\.weeklyEnabled && isSunday\(local\.date\)/);
+  assert.match(scheduler, /aiSettings\.monthlyEnabled && isLastDayOfMonth\(local\.date\)/);
+  assert.match(scheduler, /generateCustomerAiAnalysis\(vault\.customerId, values, period, "compact"\)/);
+  assert.match(scheduler, /composeDailyTelegramMessage\(reportText, analysisText\)/);
+  assert.match(migration, /ADD `weekly_enabled` integer DEFAULT false NOT NULL/);
+  assert.match(migration, /ADD `monthly_enabled` integer DEFAULT false NOT NULL/);
+});

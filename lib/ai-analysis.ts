@@ -11,6 +11,8 @@ export const AI_ANALYSIS_MODEL = "gemini-3.6-flash";
 
 export type AiAnalysisSettings = {
   enabled: boolean;
+  weeklyEnabled: boolean;
+  monthlyEnabled: boolean;
   reportTime: string;
   model: string;
   configured: boolean;
@@ -95,16 +97,24 @@ async function decryptApiKey(payload: string): Promise<string> {
 
 export function validateAiSettingsInput(input: {
   enabled?: unknown;
+  weeklyEnabled?: unknown;
+  monthlyEnabled?: unknown;
   reportTime?: unknown;
   apiKey?: unknown;
-}): { enabled: boolean; reportTime: string; apiKey: string } {
+}): { enabled: boolean; weeklyEnabled: boolean; monthlyEnabled: boolean; reportTime: string; apiKey: string } {
   const reportTime = String(input.reportTime ?? "").trim();
   const apiKey = normalizeApiKey(input.apiKey);
   if (!TIME.test(reportTime)) throw new Error("Göndəriş vaxtını HH:MM formatında daxil edin.");
   if (apiKey && (!API_KEY.test(apiKey) || hasControlCharacter(apiKey))) {
     throw new Error("Gemini API key natamamdır və ya içində boşluq var.");
   }
-  return { enabled: input.enabled === true, reportTime, apiKey };
+  return {
+    enabled: input.enabled === true,
+    weeklyEnabled: input.weeklyEnabled === true,
+    monthlyEnabled: input.monthlyEnabled === true,
+    reportTime,
+    apiKey,
+  };
 }
 
 export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings> {
@@ -113,6 +123,8 @@ export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings
   if (!row) {
     return {
       enabled: false,
+      weeklyEnabled: false,
+      monthlyEnabled: false,
       reportTime: "09:00",
       model: AI_ANALYSIS_MODEL,
       configured: false,
@@ -123,6 +135,8 @@ export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings
     const apiKey = await decryptApiKey(row.encryptedApiKey);
     return {
       enabled: row.enabled,
+      weeklyEnabled: row.weeklyEnabled,
+      monthlyEnabled: row.monthlyEnabled,
       reportTime: row.reportTime,
       model: AI_ANALYSIS_MODEL,
       configured: Boolean(apiKey),
@@ -131,6 +145,8 @@ export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings
   } catch {
     return {
       enabled: false,
+      weeklyEnabled: false,
+      monthlyEnabled: false,
       reportTime: row.reportTime,
       model: AI_ANALYSIS_MODEL,
       configured: false,
@@ -141,6 +157,8 @@ export async function loadAiAnalysisSettings(): Promise<StoredAiAnalysisSettings
 
 export async function saveAiAnalysisSettings(input: {
   enabled: boolean;
+  weeklyEnabled: boolean;
+  monthlyEnabled: boolean;
   reportTime: string;
   apiKey: string;
 }): Promise<AiAnalysisSettings> {
@@ -156,6 +174,8 @@ export async function saveAiAnalysisSettings(input: {
     id: AI_ANALYSIS_SETTINGS_ID,
     encryptedApiKey,
     enabled: input.enabled,
+    weeklyEnabled: input.weeklyEnabled,
+    monthlyEnabled: input.monthlyEnabled,
     reportTime: input.reportTime,
     model: AI_ANALYSIS_MODEL,
     updatedAt: now,
@@ -164,6 +184,8 @@ export async function saveAiAnalysisSettings(input: {
     set: {
       encryptedApiKey,
       enabled: input.enabled,
+      weeklyEnabled: input.weeklyEnabled,
+      monthlyEnabled: input.monthlyEnabled,
       reportTime: input.reportTime,
       model: AI_ANALYSIS_MODEL,
       updatedAt: now,
@@ -171,6 +193,8 @@ export async function saveAiAnalysisSettings(input: {
   });
   return {
     enabled: input.enabled,
+    weeklyEnabled: input.weeklyEnabled,
+    monthlyEnabled: input.monthlyEnabled,
     reportTime: input.reportTime,
     model: AI_ANALYSIS_MODEL,
     configured: true,

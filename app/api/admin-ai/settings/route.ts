@@ -15,6 +15,8 @@ export async function GET() {
   const settings = await loadAiAnalysisSettings();
   return Response.json({
     enabled: settings.enabled,
+    weeklyEnabled: settings.weeklyEnabled,
+    monthlyEnabled: settings.monthlyEnabled,
     reportTime: settings.reportTime,
     model: settings.model,
     configured: settings.configured,

@@ -204,6 +204,8 @@ export const aiAnalysisSettings = sqliteTable("ai_analysis_settings", {
   id: text("id").primaryKey(),
   encryptedApiKey: text("encrypted_api_key").notNull(),
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
+  weeklyEnabled: integer("weekly_enabled", { mode: "boolean" }).notNull().default(false),
+  monthlyEnabled: integer("monthly_enabled", { mode: "boolean" }).notNull().default(false),
   reportTime: text("report_time").notNull().default("09:00"),
   model: text("model").notNull().default("gemini-2.5-flash"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
