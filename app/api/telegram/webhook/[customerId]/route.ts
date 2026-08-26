@@ -50,11 +50,25 @@ export async function POST(request: Request, context: { params: Promise<{ custom
       const firstMessageId = Math.max(1, commandMessageId - 99);
       const messageIds = Array.from({ length: commandMessageId - firstMessageId + 1 }, (_, index) => firstMessageId + index);
       try {
-        await callTelegram(botToken, "deleteMessages", { chat_id: chatId, message_ids: messageIds });
+        let deletedCount = messageIds.length;
+        try {
+          await callTelegram(botToken, "deleteMessages", { chat_id: chatId, message_ids: messageIds });
+        } catch {
+          deletedCount = 0;
+          const newestFirst = [...messageIds].reverse();
+          for (let index = 0; index < newestFirst.length; index += 10) {
+            const batch = newestFirst.slice(index, index + 10);
+            const results = await Promise.allSettled(batch.map((messageId) =>
+              callTelegram(botToken, "deleteMessage", { chat_id: chatId, message_id: messageId })
+            ));
+            deletedCount += results.filter((result) => result.status === "fulfilled").length;
+          }
+          if (deletedCount === 0) throw new Error("Telegram silinə bilən yeni mesaj tapmadı.");
+        }
         await notifyAdminBot({
           customerId,
           eventType: "customer_chat_cleared",
-          message: `🧹 HEAT Admin — Telegram söhbəti təmizləndi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: /clear\nNəticə: Telegram qaydalarına uyğun son 100-ə qədər mesaj üçün silmə əmri icra edildi.`,
+          message: `🧹 HEAT Admin — Telegram söhbəti təmizləndi\n\nMüştəri: ${values.customerName}\nObyekt: ${values.siteName}\nKomanda: /clear\nSilinən mesaj sayı: ${deletedCount}\nNəticə: Silinməsinə icazə verilən mesajlar təmizləndi, köhnə və qadağan olunan mesajlar ötürüldü.`,
         });
       } catch (clearError) {
         const reason = clearError instanceof Error ? clearError.message.slice(0, 180) : "Telegram mesajları silmədi.";
