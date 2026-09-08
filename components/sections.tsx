@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Activity,
   AirVent,
@@ -43,6 +43,7 @@ import {
 } from "recharts";
 import { Button, Card, Reveal, SectionHeader } from "./ui";
 import { MainDashboard } from "./dashboard";
+import { useLanguage } from "./i18n";
 
 const problems = [
   [
@@ -820,15 +821,32 @@ export function ComparisonAbout() {
 }
 
 export function ContactSection() {
-  const [sent] = useState(() =>
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("submitted") === "1"
-  );
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("submitted") === "1") {
-      window.history.replaceState({}, "", `${window.location.pathname}#contact`);
+  const { language } = useLanguage();
+  const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  async function submitAssessment(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const values = Object.fromEntries(new FormData(form).entries());
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/energy-assessment", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...values, language }),
+      });
+      if (!response.ok) throw new Error("Request failed");
+      form.reset();
+      setSent(true);
+    } catch {
+      setSubmitError("The request could not be sent. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-  }, []);
+  }
   return (
     <>
       <section className="final-cta section">
@@ -900,27 +918,8 @@ export function ContactSection() {
                 </button>
               </div>
             ) : (
-              <form
-                action="https://formsubmit.co/heat.co2026@gmail.com"
-                method="POST"
-              >
-                <input
-                  type="hidden"
-                  name="_next"
-                  value="https://heatenergyanalytics.com/?submitted=1#contact"
-                />
-                <input
-                  type="hidden"
-                  name="_subject"
-                  value="New HEAT Energy Assessment Request"
-                />
-                <input type="hidden" name="_template" value="table" />
-                <input
-                  type="hidden"
-                  name="_url"
-                  value="https://heatenergyanalytics.com/"
-                />
-                <input type="text" name="_honey" className="honey-field" />
+              <form onSubmit={submitAssessment}>
+                <input type="text" name="website" className="honey-field" tabIndex={-1} autoComplete="off" />
                 <div className="form-grid">
                   <label>
                     Full Name
@@ -932,7 +931,7 @@ export function ContactSection() {
                   </label>
                   <label>
                     Business Type
-                    <select required defaultValue="">
+                    <select required name="businessType" defaultValue="">
                       <option value="" disabled>
                         Select type
                       </option>
@@ -984,8 +983,9 @@ export function ContactSection() {
                     />
                   </label>
                 </div>
-                <button className="submit" type="submit">
-                  Request Energy Assessment <Send size={16} />
+                {submitError && <p className="form-submit-error" role="alert">{submitError}</p>}
+                <button className="submit" type="submit" disabled={submitting}>
+                  {submitting ? "Sending..." : "Request Energy Assessment"} <Send size={16} />
                 </button>
                 <small>
                   By submitting, you agree to be contacted by the HEAT team.

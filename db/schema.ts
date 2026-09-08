@@ -246,3 +246,22 @@ export const customerLoginAttempts = sqliteTable("customer_login_attempts", {
   blockedUntil: text("blocked_until"),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const energyAssessmentRequests = sqliteTable(
+  "energy_assessment_requests",
+  {
+    id: text("id").primaryKey(),
+    fullName: text("full_name").notNull(),
+    companyName: text("company_name").notNull(),
+    businessType: text("business_type").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email").notNull(),
+    locationCount: integer("location_count"),
+    monthlyElectricityCost: text("monthly_electricity_cost"),
+    message: text("message"),
+    language: text("language").notNull().default("az"),
+    status: text("status").notNull().default("new"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("idx_energy_assessment_requests_created").on(table.createdAt)],
+);

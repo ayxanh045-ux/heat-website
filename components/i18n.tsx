@@ -400,6 +400,11 @@ const copy: Record<string, Pair> = {
     "Enerji qiymətləndirməsi istəyin",
     "Запросить энергооценку",
   ],
+  "Sending...": ["Göndərilir...", "Отправка..."],
+  "The request could not be sent. Please try again.": [
+    "Sorğu göndərilmədi. Zəhmət olmasa, yenidən cəhd edin.",
+    "Не удалось отправить заявку. Пожалуйста, попробуйте ещё раз.",
+  ],
   "Request received.": ["Sorğu qəbul edildi.", "Заявка получена."],
   "Send another request": ["Yeni sorğu göndərin", "Отправить ещё одну заявку"],
   Email: ["E-poçt", "Эл. почта"],
