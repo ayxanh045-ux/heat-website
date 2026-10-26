@@ -674,20 +674,25 @@ export function ReportSection() {
   );
 }
 
-const subscriptionServices = [
+const standardServices = [
   "Smart monitoring device and professional installation",
   "Live energy dashboard and mobile access",
-  "Total and phase-by-phase consumption in kWh and AZN",
+  "Automatic Telegram reports and notifications",
   "Peak power and possible anomaly alerts",
   "After-hours consumption monitoring",
-  "Automatic Telegram reports and notifications",
-  "Consumption history and cost comparisons",
+  "Remote technical support and secure data storage",
+];
+
+const annualServices = [
+  "All Standard features included",
+  "2 months of service completely free (save 138 AZN)",
+  "Price lock guarantee for the full year",
+  "Priority technical support & consultation",
   "Monthly energy review and practical recommendations",
   "Remote technical support and secure data storage",
 ];
-export function PricingSection() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
 
+export function PricingSection() {
   return (
     <section className="pricing section" id="pricing">
       <div className="container">
@@ -699,89 +704,103 @@ export function PricingSection() {
             body="Everything required to monitor one facility, understand electricity costs and receive useful alerts is included in one service package."
           />
         </Reveal>
-        <Reveal className="subscription-card" delay={0.08}>
-          <Card className="recommended">
-            <div className="subscription-summary">
-              <span className="recommended-label">
-                {billingCycle === "monthly" ? "STANDARD PLAN" : "ANNUAL BONUS"}
-              </span>
 
-              <div className="pricing-cycle-toggle">
-                <button
-                  type="button"
-                  className={billingCycle === "monthly" ? "active" : ""}
-                  onClick={() => setBillingCycle("monthly")}
-                >
-                  Standard (Monthly)
-                </button>
-                <button
-                  type="button"
-                  className={billingCycle === "annual" ? "active" : ""}
-                  onClick={() => setBillingCycle("annual")}
-                >
-                  Annual Bonus <span className="badge-pill">-2 MONTHS</span>
-                </button>
+        <div className="pricing-cards-grid">
+          <Reveal className="pricing-card-wrap" delay={0.06}>
+            <Card className="pricing-plan-card">
+              <div className="pricing-card-header">
+                <span className="plan-badge">STANDARD PLAN</span>
+                <h3 className="plan-title">Standard (Monthly)</h3>
+                <p className="plan-desc">Continuous monitoring and monthly payments</p>
               </div>
 
-              {billingCycle === "monthly" ? (
-                <>
-                  <div>
-                    <small>STANDARD OPTION — INSTALLATION & SETUP</small>
-                    <strong>150 <em>AZN</em></strong>
-                    <p>Professional installation, hardware integration and system activation included.</p>
-                  </div>
-                  <i aria-hidden="true" />
-                  <div>
-                    <small>MONTHLY SERVICE SUBSCRIPTION</small>
-                    <strong>69 <em>AZN / month</em></strong>
-                    <p>Continuous monitoring, automated Telegram reports, anomaly alerts and analytics.</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="annual-bonus-callout"
-                    onClick={() => setBillingCycle("annual")}
-                    style={{ width: "100%", fontFamily: "inherit", cursor: "pointer" }}
-                  >
-                    <strong>Annual Payment Bonus:</strong>
-                    <p>Pay 1 year upfront and get 2 months free: 150 AZN + 690 AZN = 840 AZN total.</p>
-                  </button>
-                  <Button href="#contact">Request a Demo</Button>
-                  <p className="subscription-note">
-                    Standard model: 150 AZN installation + 69 AZN/month. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <small>ANNUAL PAYMENT BONUS — 2 MONTHS FREE</small>
-                    <strong>840 <em>AZN / year</em></strong>
-                    <p>Pay 1 year upfront: 150 AZN installation + 690 AZN (10 months service). 2 months completely free!</p>
-                  </div>
-                  <div className="annual-bonus-callout">
-                    <strong>Annual Bonus Active:</strong>
-                    <p>Pay 1 year upfront and get 2 months free: 150 AZN + 690 AZN = 840 AZN total.</p>
-                  </div>
-                  <Button href="#contact">Request a Demo</Button>
-                  <p className="subscription-note">
-                    Annual package: 150 AZN installation + 690 AZN for 10 months of service. The other 2 months are free. Total: 840 AZN. Monitoring equipment remains HEAT property during the subscription.
-                  </p>
-                </>
-              )}
-            </div>
-            <div className="subscription-services">
-              <small>EVERYTHING INCLUDED</small>
-              <h3>HEAT energy monitoring service</h3>
-              <div className="plan-list">
-                {subscriptionServices.map((service) => (
-                  <span key={service}>
-                    <Check size={15} />
-                    {service}
+              <div className="pricing-card-price">
+                <div className="price-main">
+                  <span className="price-num">69</span>
+                  <span className="price-curr">
+                    AZN <em>/ month</em>
                   </span>
-                ))}
+                </div>
+                <div className="price-setup-tag">
+                  + 150 AZN setup & installation (one-time)
+                </div>
               </div>
-            </div>
-          </Card>
-        </Reveal>
+
+              <div className="pricing-offer-quote">
+                «Standart Variant: 150 AZN quraşdırma + hər ay 69 AZN (Aylıq ödənişlə)»
+              </div>
+
+              <Button href="#contact" className="pricing-card-btn">
+                Request a Demo
+              </Button>
+
+              <div className="pricing-card-features">
+                <span className="features-title">HEAT energy monitoring service:</span>
+                <ul className="features-list">
+                  {standardServices.map((service) => (
+                    <li key={service}>
+                      <Check size={16} />
+                      <span>{service}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <p className="pricing-card-footnote">
+                Standard model: 150 AZN installation + 69 AZN/month. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.
+              </p>
+            </Card>
+          </Reveal>
+
+          <Reveal className="pricing-card-wrap" delay={0.12}>
+            <Card className="pricing-plan-card featured">
+              <div className="pricing-card-header">
+                <div className="badge-row">
+                  <span className="plan-badge featured">ANNUAL BONUS</span>
+                  <span className="save-badge">⭐ 2 MONTHS FREE</span>
+                </div>
+                <h3 className="plan-title">Annual Bonus</h3>
+                <p className="plan-desc">Best value — 2 months completely free</p>
+              </div>
+
+              <div className="pricing-card-price">
+                <div className="price-main">
+                  <span className="price-num">840</span>
+                  <span className="price-curr">
+                    AZN <em>/ year</em>
+                  </span>
+                </div>
+                <div className="price-setup-tag featured">
+                  150 AZN setup + 690 AZN (10 months) — 2 months FREE!
+                </div>
+              </div>
+
+              <div className="pricing-offer-quote featured">
+                «Əgər 1 illik abunəni birdəfəlik ödəsəniz, 2 ayı sizə hədiyyə edirik: 150 AZN + 690 AZN = Cəmi 840 AZN»
+              </div>
+
+              <Button href="#contact" className="pricing-card-btn featured">
+                Request a Demo
+              </Button>
+
+              <div className="pricing-card-features">
+                <span className="features-title">Annual Bonus includes:</span>
+                <ul className="features-list">
+                  {annualServices.map((service) => (
+                    <li key={service}>
+                      <Check size={16} />
+                      <span>{service}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <p className="pricing-card-footnote">
+                Annual package: 150 AZN installation + 690 AZN for 10 months of service. The other 2 months are free. Total: 840 AZN. Monitoring equipment remains HEAT property during the subscription.
+              </p>
+            </Card>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

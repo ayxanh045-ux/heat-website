@@ -78,6 +78,47 @@ const copy: Record<string, Pair> = {
   ],
   "AZN / year": ["AZN / il", "AZN / год"],
   "AZN / month": ["AZN / ay", "AZN / месяц"],
+  "2 MONTHS FREE": ["2 AY HƏDİYYƏ", "2 МЕСЯЦА В ПОДАРОК"],
+  "Continuous monitoring and monthly payments": [
+    "Fasiləsiz monitorinq və aylıq ödəniş",
+    "Непрерывный мониторинг и ежемесячная оплата",
+  ],
+  "Best value — 2 months completely free": [
+    "Ən sərfəli seçim — 2 ay tamamilə pulsuz",
+    "Выгодный выбор — 2 месяца бесплатно",
+  ],
+  "+ 150 AZN setup & installation (one-time)": [
+    "+ 150 AZN quraşdırma və sazlanma (birdəfəlik)",
+    "+ 150 AZN установка и настройка (разово)",
+  ],
+  "150 AZN setup + 690 AZN (10 months) — 2 months FREE!": [
+    "150 AZN quraşdırma + 690 AZN (10 ay) — 2 ay PULSUZ!",
+    "150 AZN установка + 690 AZN (10 мес) — 2 месяца БЕСПЛАТНО!",
+  ],
+  "Standart Variant: 150 AZN quraşdırma + hər ay 69 AZN (Aylıq ödənişlə)": [
+    "Standart Variant: 150 AZN quraşdırma + hər ay 69 AZN (Aylıq ödənişlə)",
+    "Стандартный вариант: 150 AZN установка + 69 AZN/месяц (ежемесячная оплата)",
+  ],
+  "All Standard features included": [
+    "Standart paketə daxil olan bütün imkanlar",
+    "Все возможности Стандартного пакета",
+  ],
+  "2 months of service completely free (save 138 AZN)": [
+    "2 ay tamamilə pulsuz xidmət (138 AZN qənaət)",
+    "2 месяца обслуживания бесплатно (экономия 138 AZN)",
+  ],
+  "Price lock guarantee for the full year": [
+    "İl ərzində qiymət artımından zəmanət",
+    "Гарантия фиксации цены на весь год",
+  ],
+  "Priority technical support & consultation": [
+    "Prioritet texniki dəstək və konsultasiya",
+    "Приоритетная техподдержка и консультации",
+  ],
+  "Annual Bonus includes:": [
+    "İllik paket üstünlükləri:",
+    "Преимущества годового пакета:",
+  ],
   "Installation, system activation and the first month of service are included.": [
     "Quraşdırılma, sistemin aktivləşdirilməsi və ilk aylıq xidmət daxildir.",
     "Установка, активация системы и обслуживание за первый месяц включены.",
