@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { BellRing, Bot, CheckCircle2, ChevronDown, ChevronUp, Loader2, RefreshCw, Send, ShieldCheck } from "lucide-react";
 
