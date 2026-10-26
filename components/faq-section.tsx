@@ -110,67 +110,34 @@ export function FaqSection() {
             body={titles.body[language] || titles.body.en}
           />
         </Reveal>
-        <div className="faq-grid" style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div className="faq-grid">
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
             const q = faq.question[language] || faq.question.en;
             const a = faq.answer[language] || faq.answer.en;
             return (
-              <Reveal key={faq.question.en} delay={index * 0.05}>
-                <Card
-                  className={`faq-card ${isOpen ? "open" : ""}`}
-                  style={{
-                    cursor: "pointer",
-                    padding: "1.25rem 1.5rem",
-                    transition: "border-color 0.2s, background 0.2s",
-                  }}
-                  onClick={() => toggle(index)}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "1rem",
-                    }}
+              <Reveal key={faq.question.en} delay={index * 0.04}>
+                <div className={`faq-card ${isOpen ? "open" : ""}`}>
+                  <button
+                    type="button"
+                    className="faq-header-btn"
+                    onClick={() => toggle(index)}
+                    aria-expanded={isOpen}
                   >
-                    <h3
-                      style={{
-                        margin: 0,
-                        fontSize: "1.05rem",
-                        fontWeight: 600,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.6rem",
-                      }}
-                    >
-                      <HelpCircle size={18} style={{ opacity: 0.7, flexShrink: 0 }} />
-                      {q}
+                    <h3 className="faq-question-title">
+                      <HelpCircle size={19} />
+                      <span>{q}</span>
                     </h3>
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                        transition: "transform 0.2s",
-                      }}
-                    >
-                      <ChevronDown size={18} />
+                    <span className="faq-chevron">
+                      <ChevronDown size={19} />
                     </span>
-                  </div>
+                  </button>
                   {isOpen && (
-                    <p
-                      style={{
-                        margin: "1rem 0 0 0",
-                        paddingTop: "0.75rem",
-                        borderTop: "1px solid rgba(255,255,255,0.08)",
-                        lineHeight: 1.6,
-                        opacity: 0.9,
-                      }}
-                    >
-                      {a}
-                    </p>
+                    <div className="faq-answer">
+                      <p>{a}</p>
+                    </div>
                   )}
-                </Card>
+                </div>
               </Reveal>
             );
           })}
