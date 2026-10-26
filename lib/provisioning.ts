@@ -1,6 +1,6 @@
-import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
+import { getProvisioningEncryptionKey, getProvisionerAgentToken } from "@/lib/env";
 import { customerAgentTokens, customers } from "@/db/schema";
 import { ELECTRICITY_TARIFF_AZN_PER_KWH } from "@/lib/electricity";
 
@@ -146,8 +146,8 @@ function decodeBase64(value: string): Uint8Array {
 }
 
 export async function encryptProvisioningInput(input: ProvisioningInput): Promise<string> {
-  const configured = (env as unknown as Record<string, unknown>).PROVISIONING_ENCRYPTION_KEY;
-  const keyBytes = decodeBase64(String(configured ?? ""));
+  const configured = getProvisioningEncryptionKey();
+  const keyBytes = decodeBase64(configured);
   if (keyBytes.byteLength !== 32) throw new Error("Provisioning encryption key is not configured.");
   const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt"]);
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -159,8 +159,8 @@ export async function encryptProvisioningInput(input: ProvisioningInput): Promis
 export async function decryptProvisioningInput(payload: string): Promise<ProvisioningInput> {
   const [version, encodedIv, encodedCiphertext] = payload.split(".");
   if (version !== "v1" || !encodedIv || !encodedCiphertext) throw new Error("Encrypted payload format is invalid.");
-  const configured = (env as unknown as Record<string, unknown>).PROVISIONING_ENCRYPTION_KEY;
-  const keyBytes = decodeBase64(String(configured ?? ""));
+  const configured = getProvisioningEncryptionKey();
+  const keyBytes = decodeBase64(configured);
   if (keyBytes.byteLength !== 32) throw new Error("Provisioning encryption key is not configured.");
   const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
   const plaintext = await crypto.subtle.decrypt(
@@ -196,7 +196,7 @@ async function safeTokenEqual(left: string, right: string): Promise<boolean> {
 }
 
 export async function getAgentPrincipal(request: Request): Promise<AgentPrincipal | null> {
-  const expected = String((env as unknown as Record<string, unknown>).PROVISIONER_AGENT_TOKEN ?? "");
+  const expected = getProvisionerAgentToken();
   const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
   if (!supplied || supplied.length < 24 || supplied.length > 200) return null;
   if (expected && await safeTokenEqual(expected, supplied)) return { kind: "global" };

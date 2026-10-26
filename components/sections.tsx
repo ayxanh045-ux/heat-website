@@ -686,6 +686,8 @@ const subscriptionServices = [
   "Remote technical support and secure data storage",
 ];
 export function PricingSection() {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+
   return (
     <section className="pricing section" id="pricing">
       <div className="container">
@@ -700,22 +702,71 @@ export function PricingSection() {
         <Reveal className="subscription-card" delay={0.08}>
           <Card className="recommended">
             <div className="subscription-summary">
-              <span className="recommended-label">COMPLETE PACKAGE</span>
-              <div>
-                <small>FIRST MONTH — TOTAL PAYMENT</small>
-                <strong>220 <em>AZN</em></strong>
-                <p>Installation, system activation and the first month of service are included.</p>
+              <span className="recommended-label">
+                {billingCycle === "monthly" ? "STANDARD PLAN" : "ANNUAL BONUS"}
+              </span>
+
+              <div className="pricing-cycle-toggle">
+                <button
+                  type="button"
+                  className={billingCycle === "monthly" ? "active" : ""}
+                  onClick={() => setBillingCycle("monthly")}
+                >
+                  Standard (Monthly)
+                </button>
+                <button
+                  type="button"
+                  className={billingCycle === "annual" ? "active" : ""}
+                  onClick={() => setBillingCycle("annual")}
+                >
+                  Annual Bonus <span className="badge-pill">-2 MONTHS</span>
+                </button>
               </div>
-              <i aria-hidden="true" />
-              <div>
-                <small>FROM THE SECOND MONTH</small>
-                <strong>120 <em>AZN / month</em></strong>
-                <p>Continuous monitoring, analytics, reports and remote support.</p>
-              </div>
-              <Button href="#contact">Request a Demo</Button>
-              <p className="subscription-note">
-                You do not pay 220 + 120 AZN in the first month. Your first-month total is 220 AZN; every following month is 120 AZN. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.
-              </p>
+
+              {billingCycle === "monthly" ? (
+                <>
+                  <div>
+                    <small>STANDARD OPTION — INSTALLATION & SETUP</small>
+                    <strong>150 <em>AZN</em></strong>
+                    <p>Professional installation, hardware integration and system activation included.</p>
+                  </div>
+                  <i aria-hidden="true" />
+                  <div>
+                    <small>MONTHLY SERVICE SUBSCRIPTION</small>
+                    <strong>69 <em>AZN / month</em></strong>
+                    <p>Continuous monitoring, automated Telegram reports, anomaly alerts and analytics.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="annual-bonus-callout"
+                    onClick={() => setBillingCycle("annual")}
+                    style={{ width: "100%", fontFamily: "inherit", cursor: "pointer" }}
+                  >
+                    <strong>Annual Payment Bonus:</strong>
+                    <p>Pay 1 year upfront and get 2 months free: 150 AZN + 690 AZN = 840 AZN total.</p>
+                  </button>
+                  <Button href="#contact">Request a Demo</Button>
+                  <p className="subscription-note">
+                    Standard model: 150 AZN installation + 69 AZN/month. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <small>ANNUAL PAYMENT BONUS — 2 MONTHS FREE</small>
+                    <strong>840 <em>AZN / year</em></strong>
+                    <p>Pay 1 year upfront: 150 AZN installation + 690 AZN (10 months service). 2 months completely free!</p>
+                  </div>
+                  <div className="annual-bonus-callout">
+                    <strong>Annual Bonus Active:</strong>
+                    <p>Pay 1 year upfront and get 2 months free: 150 AZN + 690 AZN = 840 AZN total.</p>
+                  </div>
+                  <Button href="#contact">Request a Demo</Button>
+                  <p className="subscription-note">
+                    Annual package: 150 AZN installation + 690 AZN for 10 months of service. The other 2 months are free. Total: 840 AZN. Monitoring equipment remains HEAT property during the subscription.
+                  </p>
+                </>
+              )}
             </div>
             <div className="subscription-services">
               <small>EVERYTHING INCLUDED</small>
@@ -828,6 +879,7 @@ export function ContactSection() {
 
   async function submitAssessment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     const form = event.currentTarget;
     const values = Object.fromEntries(new FormData(form).entries());
     setSubmitting(true);
@@ -838,11 +890,14 @@ export function ContactSection() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ ...values, language }),
       });
-      if (!response.ok) throw new Error("Request failed");
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || "Request failed");
+      }
       form.reset();
       setSent(true);
-    } catch {
-      setSubmitError("The request could not be sent. Please try again.");
+    } catch (error) {
+      setSubmitError(error instanceof Error && error.message ? error.message : "The request could not be sent. Please try again.");
     } finally {
       setSubmitting(false);
     }

@@ -2,8 +2,15 @@ import { getDb } from "@/db";
 import { energyAssessmentRequests } from "@/db/schema";
 import { notifyAdminBot } from "@/lib/admin-bot";
 import { requestIsSameOrigin } from "@/lib/provisioning";
+import { checkRateLimit, getClientFingerprint, recordRateLimitHit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+
+const ASSESSMENT_RATE_CONFIG = {
+  maxAttempts: 5,
+  windowMs: 10 * 60 * 1000,
+  blockDurationMs: 30 * 60 * 1000,
+};
 
 function clean(value: unknown, maximum: number): string {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
@@ -11,12 +18,25 @@ function clean(value: unknown, maximum: number): string {
 
 export async function POST(request: Request) {
   if (!requestIsSameOrigin(request)) {
-    return Response.json({ error: "Etibarsız sorğu mənbəyi." }, { status: 403 });
+    return Response.json({ error: "Etibarsız sorğu mənbəyi." }, { status: 403, headers: { "cache-control": "no-store, private" } });
+  }
+
+  const fingerprint = await getClientFingerprint(request, "lead");
+  const rateLimitStatus = await checkRateLimit({ key: fingerprint, ...ASSESSMENT_RATE_CONFIG });
+  if (!rateLimitStatus.allowed) {
+    const retryAfter = rateLimitStatus.retryAfterSeconds ?? 600;
+    return Response.json(
+      { error: "Çox sayda müraciət göndərildi. Zəhmət olmasa bir qədər sonra yenidən cəhd edin." },
+      { status: 429, headers: { "retry-after": String(retryAfter), "cache-control": "no-store, private" } },
+    );
   }
 
   try {
-    const body = await request.json() as Record<string, unknown>;
-    if (clean(body.website, 200)) return Response.json({ ok: true });
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    if (clean(body.website, 200)) {
+      // Honeypot triggered by bot
+      return Response.json({ ok: true }, { headers: { "cache-control": "no-store, private" } });
+    }
 
     const fullName = clean(body.name, 100);
     const companyName = clean(body.company, 120);
@@ -34,11 +54,13 @@ export async function POST(request: Request) {
       : null;
 
     if (!fullName || !companyName || !businessType || !phone || !email) {
-      return Response.json({ error: "Tələb olunan xanaları doldurun." }, { status: 400 });
+      return Response.json({ error: "Tələb olunan xanaları doldurun." }, { status: 400, headers: { "cache-control": "no-store, private" } });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return Response.json({ error: "E-poçt ünvanı düzgün deyil." }, { status: 400 });
+      return Response.json({ error: "E-poçt ünvanı düzgün deyil." }, { status: 400, headers: { "cache-control": "no-store, private" } });
     }
+
+    await recordRateLimitHit({ key: fingerprint, ...ASSESSMENT_RATE_CONFIG });
 
     const id = crypto.randomUUID();
     await getDb().insert(energyAssessmentRequests).values({
@@ -66,14 +88,15 @@ export async function POST(request: Request) {
       ...(message ? [`Mesaj: ${message}`] : []),
       `Sorğu ID: ${id}`,
     ].join("\n");
+
     try {
       await notifyAdminBot({ eventType: "energy_assessment_requested", message: notification });
     } catch {
       // The request remains safely stored even if the optional Telegram notification fails.
     }
 
-    return Response.json({ ok: true, requestId: id }, { status: 201 });
+    return Response.json({ ok: true, requestId: id }, { status: 201, headers: { "cache-control": "no-store, private" } });
   } catch {
-    return Response.json({ error: "Sorğu saxlanmadı." }, { status: 500 });
+    return Response.json({ error: "Sorğu saxlanmadı." }, { status: 500, headers: { "cache-control": "no-store, private" } });
   }
 }

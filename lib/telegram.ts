@@ -139,7 +139,7 @@ export function demoTelegramReply(command: string, values: ProvisioningInput, op
   if (command === "/budget") {
     const budget = options.energySettings?.monthlyBudgetAzn ?? 500;
     const used = Number(metrics.actualEnergyKwh) * tariff;
-    const percent = used / budget * 100;
+    const percent = budget > 0 ? (used / budget) * 100 : 0;
     return `💳 HEAT — Aylıq büdcə\n\nLimit: ${budget.toFixed(2)} AZN\nİstifadə olunub: ${used.toFixed(2)} AZN (${percent.toFixed(1)}%)\nQalıq: ${Math.max(0, budget - used).toFixed(2)} AZN\nAy sonu proqnozu: ${metrics.projectedCostAzn} AZN\n\n${percent >= 80 ? "⚠️ Büdcə xəbərdarlığı həddinə yaxınlaşırsınız." : "✅ Büdcə hazırda nəzarətdədir."}`;
   }
   if (command === "/compare") {

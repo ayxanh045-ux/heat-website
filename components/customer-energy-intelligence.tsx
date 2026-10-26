@@ -45,7 +45,7 @@ export function CustomerEnergyIntelligence({ demoMode = false }: { demoMode?: bo
 
   const update = <K extends keyof EnergySettings>(key: K, value: EnergySettings[K]) => setSettings((current) => current ? { ...current, [key]: value } : current);
   const save = async () => {
-    if (!settings) return;
+    if (!settings || saving) return;
     setSaving(true); setMessage("");
     try {
       const response = await fetch("/api/customer-settings", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(settings) });
@@ -78,11 +78,11 @@ export function CustomerEnergyIntelligence({ demoMode = false }: { demoMode?: bo
     <section className="energy-action-panel"><span><BrainCircuit size={20}/></span><div><small>AI ƏSASLI FƏALİYYƏT PLANI</small><h3>Təxmini qənaət potensialı: {insights.analysis.potentialSavingAzn.toFixed(2)} AZN</h3><ul>{insights.analysis.recommendations.map((item) => <li key={item}>{item}</li>)}</ul><em>Bu avtomatik analitikadır; elektrik təhlükəsizliyi diaqnozu deyil.</em></div></section>
 
     <details className="energy-settings" open={!demoMode}><summary><span><Settings2 size={16}/><b>Büdcə və iş saatlarını dəyiş</b></span><small>{demoMode ? "Demo parametrləri · yalnız baxış" : "Saytdan redaktə et və yadda saxla"}</small></summary>{!demoMode && <p className="energy-settings-help">Eyni dəyişiklikləri Telegram-da <code>/setbudget 750</code> və <code>/sethours 09:00 23:00</code> komandaları ilə də edə bilərsiniz.</p>}<div className="energy-settings-grid">
-      <label><span>Aylıq büdcə (AZN)</span><input disabled={demoMode} type="number" min="10" step="10" value={settings.monthlyBudgetAzn} onChange={(event) => update("monthlyBudgetAzn", Number(event.target.value))}/></label>
-      <label><span>Büdcə xəbərdarlığı (%)</span><input disabled={demoMode} type="number" min="50" max="100" value={settings.budgetWarningPercent} onChange={(event) => update("budgetWarningPercent", Number(event.target.value))}/></label>
+      <label><span>Aylıq büdcə (AZN)</span><input disabled={demoMode} type="number" min="10" step="10" value={settings.monthlyBudgetAzn} onChange={(event) => update("monthlyBudgetAzn", Math.max(0, Number(event.target.value) || 0))}/></label>
+      <label><span>Büdcə xəbərdarlığı (%)</span><input disabled={demoMode} type="number" min="50" max="100" value={settings.budgetWarningPercent} onChange={(event) => update("budgetWarningPercent", Math.min(100, Math.max(0, Number(event.target.value) || 0)))}/></label>
       <label><span>İşin başlama saatı</span><input disabled={demoMode} type="time" value={settings.workingHoursStart} onChange={(event) => update("workingHoursStart", event.target.value)}/></label>
       <label><span>İşin bitmə saatı</span><input disabled={demoMode} type="time" value={settings.workingHoursEnd} onChange={(event) => update("workingHoursEnd", event.target.value)}/></label>
-      <label><span>Pik güc həddi (kW)</span><input disabled={demoMode} type="number" min="0.1" step="0.1" value={settings.peakThresholdKw} onChange={(event) => update("peakThresholdKw", Number(event.target.value))}/></label>
+      <label><span>Pik güc həddi (kW)</span><input disabled={demoMode} type="number" min="0.1" step="0.1" value={settings.peakThresholdKw} onChange={(event) => update("peakThresholdKw", Math.max(0, Number(event.target.value) || 0))}/></label>
       <div className="energy-alert-switches"><b><BellRing size={15}/> Telegram xəbərdarlıqları</b>{([['alertBudget','Büdcə limiti'],['alertAfterHours','İş saatından sonrakı sərfiyyat'],['alertPeak','Pik güc'],['alertAnomaly','Anomaliya']] as [keyof EnergySettings,string][]).map(([key,label]) => <label key={key}><input disabled={demoMode} type="checkbox" checked={Boolean(settings[key])} onChange={(event) => update(key, event.target.checked as never)}/><i/><span>{label}</span></label>)}</div>
     </div><footer><p>{demoMode ? "Demo rejimində dəyişikliklər saxlanılmır." : message}</p>{!demoMode && <button type="button" disabled={saving} onClick={save}><Save size={15}/>{saving ? "Saxlanılır…" : "Parametrləri saxla"}</button>}</footer></details>
   </section>;

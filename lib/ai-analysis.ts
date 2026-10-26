@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { env } from "cloudflare:workers";
 import { getDb } from "@/db";
+import { getProvisioningEncryptionKey } from "@/lib/env";
 import { aiAnalysisSettings, aiDailyAnalyses } from "@/db/schema";
 import { buildCustomerEnergyAnalysisPackage, buildDemoEnergyAnalysisPackage, type EnergyAnalysisPeriod } from "@/lib/admin-energy-analysis";
 import { DEMO_CUSTOMER, bakuDateKey } from "@/lib/demo-customer";
@@ -64,8 +64,8 @@ function decodeBase64(value: string): Uint8Array {
 }
 
 async function encryptionKey(usage: KeyUsage[]): Promise<CryptoKey> {
-  const configured = (env as unknown as Record<string, unknown>).PROVISIONING_ENCRYPTION_KEY;
-  const keyBytes = decodeBase64(String(configured ?? ""));
+  const configured = getProvisioningEncryptionKey();
+  const keyBytes = decodeBase64(configured);
   if (keyBytes.byteLength !== 32) throw new Error("AI analiz şifrələmə açarı hazır deyil.");
   return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, usage);
 }

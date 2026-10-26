@@ -18,6 +18,7 @@ import {
   ProblemSection,
   ReportSection,
 } from "./sections";
+import { FaqSection } from "./faq-section";
 import { LanguageProvider, useLanguage, type Language } from "./i18n";
 
 const links = [
@@ -25,6 +26,7 @@ const links = [
   ["Solutions", "#solutions"],
   ["How It Works", "#how"],
   ["Pricing", "#pricing"],
+  ["FAQ", "#faq"],
   ["About", "#about"],
   ["Contact", "#contact"],
 ];
@@ -213,6 +215,7 @@ function Footer() {
               <a href="#platform">Analytics</a>
               <a href="#solutions">Alerts</a>
               <a href="#platform">Reports</a>
+              <a href="#faq">FAQ</a>
             </div>
             <div>
               <b>Company</b>
@@ -251,6 +254,7 @@ export default function Site() {
         <ReportSection />
         <PricingSection />
         <ComparisonAbout />
+        <FaqSection />
         <ContactSection />
         <Footer />
       </div>

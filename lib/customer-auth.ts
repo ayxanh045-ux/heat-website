@@ -1,4 +1,4 @@
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, lt } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getDb } from "@/db";
 import { customers, customerSessions } from "@/db/schema";
@@ -14,6 +14,15 @@ export async function sha256(value: string): Promise<string> {
 export function randomToken(byteLength = 24): string {
   const bytes = crypto.getRandomValues(new Uint8Array(byteLength));
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+export async function pruneExpiredCustomerSessions(): Promise<void> {
+  try {
+    const now = new Date().toISOString();
+    await getDb().delete(customerSessions).where(lt(customerSessions.expiresAt, now));
+  } catch {
+    // Gracefully handle uninitialized database in mock/test contexts
+  }
 }
 
 export async function getCustomerSession() {

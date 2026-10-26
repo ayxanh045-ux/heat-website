@@ -39,3 +39,23 @@ test("security boundary keeps scoped tokens and strict script CSP", () => {
   assert.match(worker, /script-src 'self' 'nonce-\$\{nonce\}' 'strict-dynamic'/);
   assert.doesNotMatch(worker, /script-src[^;]*'unsafe-inline'/);
 });
+
+test("worker ingress sanitizes untrusted workspace headers and prevents spoofing", () => {
+  const worker = readFileSync(join(root, "worker/index.ts"), "utf8");
+  assert.match(worker, /function sanitizeIncomingRequest/);
+  assert.match(worker, /oai-authenticated-user-/);
+  assert.match(worker, /cleanHeaders\.delete\(key\)/);
+  assert.match(worker, /WORKSPACE_AUTH_SECRET/);
+});
+
+test("admin authentication supports token-based protection and allowlist checking", () => {
+  const adminAuth = readFileSync(join(root, "lib/admin-auth.ts"), "utf8");
+  assert.match(adminAuth, /getAdminAccessToken/);
+  assert.match(adminAuth, /x-admin-token/);
+});
+
+test("customer session subsystem provides expired session cleanup", () => {
+  const customerAuth = readFileSync(join(root, "lib/customer-auth.ts"), "utf8");
+  assert.match(customerAuth, /pruneExpiredCustomerSessions/);
+  assert.match(customerAuth, /lt\(customerSessions\.expiresAt/);
+});

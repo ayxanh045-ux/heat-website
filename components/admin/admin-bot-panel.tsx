@@ -98,7 +98,18 @@ export function AdminBotPanel() {
 
   return (
     <section className={`admin-bot-card ${expanded ? "expanded" : "collapsed"}`} id="admin-bot">
-      <div className="admin-bot-head" onClick={() => !expanded && setExpanded(true)}>
+      <div
+        className="admin-bot-head"
+        role="button"
+        tabIndex={0}
+        onClick={() => !expanded && setExpanded(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            if (!expanded) setExpanded(true);
+          }
+        }}
+      >
         <div className="admin-bot-icon"><Bot size={20} /></div>
         <div className="admin-bot-title-wrap">
           <div className="admin-bot-title-line">

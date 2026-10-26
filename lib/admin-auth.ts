@@ -1,17 +1,29 @@
-import { env } from "cloudflare:workers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getChatGPTUser, requireChatGPTUser, type ChatGPTUser } from "@/app/chatgpt-auth";
-
-function configuredAdminEmails(): Set<string> {
-  const value = (env as unknown as Record<string, unknown>).ADMIN_EMAILS;
-  return new Set(String(value ?? "").split(",").map((item) => item.trim().toLowerCase()).filter(Boolean));
-}
+import { getAdminAccessToken, getAdminEmails } from "@/lib/env";
 
 export function isAdmin(user: ChatGPTUser): boolean {
-  return configuredAdminEmails().has(user.email.toLowerCase());
+  return getAdminEmails().has(user.email.toLowerCase());
 }
 
 export async function getAllowlistedAdminUser(): Promise<ChatGPTUser | null> {
+  const token = getAdminAccessToken();
+  if (token) {
+    const requestHeaders = await headers();
+    const bearer = requestHeaders.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
+    const adminHeader = requestHeaders.get("x-admin-token")?.trim();
+    if ((bearer && bearer === token) || (adminHeader && adminHeader === token)) {
+      const fallbackEmail = Array.from(getAdminEmails())[0] || "admin@heatenergyanalytics.com";
+      return {
+        userId: "admin-access-token",
+        displayName: "Administrator",
+        email: fallbackEmail,
+        fullName: "Administrator",
+      };
+    }
+  }
+
   const user = await getChatGPTUser();
   return user && isAdmin(user) ? user : null;
 }
@@ -21,7 +33,10 @@ export async function getAdminUser(): Promise<ChatGPTUser | null> {
 }
 
 export async function requireAdminUser(returnTo: string): Promise<ChatGPTUser> {
-  const user = await requireChatGPTUser(returnTo);
-  if (!isAdmin(user)) redirect("/");
-  return user;
+  const user = await getAdminUser();
+  if (user) return user;
+
+  const chatGptUser = await requireChatGPTUser(returnTo);
+  if (!isAdmin(chatGptUser)) redirect("/");
+  return chatGptUser;
 }

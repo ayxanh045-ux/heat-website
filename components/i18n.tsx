@@ -27,8 +27,56 @@ const copy: Record<string, Pair> = {
     "В один пакет включено всё необходимое для мониторинга одного объекта, анализа расходов на электричество и получения полезных уведомлений.",
   ],
   "COMPLETE PACKAGE": ["TAM PAKET", "ПОЛНЫЙ ПАКЕТ"],
-  "FIRST MONTH — TOTAL PAYMENT": ["İLK AY — ÜMUMİ ÖDƏNİŞ", "ПЕРВЫЙ МЕСЯЦ — ОБЩАЯ ОПЛАТА"],
-  "FROM THE SECOND MONTH": ["İKİNCİ AYDAN ETİBARƏN", "СО ВТОРОГО МЕСЯЦА"],
+  "STANDARD PLAN": ["STANDART VARİANT", "СТАНДАРТНЫЙ ВАРИАНТ"],
+  "ANNUAL BONUS": ["İLLİK ÖDƏNİŞ BONUSU", "ГОДОВОЙ БОНУС"],
+  "Standard (Monthly)": ["Standart Variant (Aylıq)", "Стандартный вариант (Ежемесячно)"],
+  "Annual Bonus": ["İllik Ödəniş Bonusu", "Бонус при годовой оплате"],
+  "-2 MONTHS": ["2 AY HƏDİYYƏ", "-2 МЕСЯЦА"],
+  "STANDARD OPTION — INSTALLATION & SETUP": [
+    "STANDART VARİANT — QURAŞDIRMA VƏ SAZLANMA",
+    "СТАНДАРТНЫЙ ВАРИАНТ — УСТАНОВКА И НАСТРОЙКА",
+  ],
+  "Professional installation, hardware integration and system activation included.": [
+    "Peşəkar quraşdırma, cihazın inteqrasiyası və sistemin aktivləşdirilməsi daxildir.",
+    "Профессиональная установка, интеграция оборудования и активация системы включены.",
+  ],
+  "MONTHLY SERVICE SUBSCRIPTION": [
+    "AYLIQ XİDMƏT ABUNƏLİYİ",
+    "ЕЖЕМЕСЯЧНАЯ ПОДПИСКА НА СЕРВИС",
+  ],
+  "Continuous monitoring, automated Telegram reports, anomaly alerts and analytics.": [
+    "Fasiləsiz monitorinq, avtomatik Telegram hesabatları, anomaliya xəbərdarlıqları və analitika.",
+    "Непрерывный мониторинг, автоматические отчёты в Telegram, оповещения об аномалиях и аналитика.",
+  ],
+  "Annual Payment Bonus:": [
+    "İllik Ödəniş Bonusu:",
+    "Бонус при годовой оплате:",
+  ],
+  "Standard model: 150 AZN installation + 69 AZN/month. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.": [
+    "Standart Variant: 150 AZN quraşdırma + hər ay 69 AZN (Aylıq ödənişlə). Qiymət bir obyekt üçün nəzərdə tutulub. Monitorinq avadanlığı abunəlik müddətində HEAT-in mülkiyyətində qalır.",
+    "Стандартный вариант: 150 AZN установка + 69 AZN/месяц (ежемесячная оплата). Цена указана для одного объекта. Оборудование остаётся в собственности HEAT во время подписки.",
+  ],
+  "ANNUAL PAYMENT BONUS — 2 MONTHS FREE": [
+    "İLLİK ÖDƏNİŞ BONUSU — 2 AY HƏDİYYƏ",
+    "ГОДОВОЙ БОНУС — 2 МЕСЯЦА В ПОДАРОК",
+  ],
+  "Pay 1 year upfront: 150 AZN installation + 690 AZN (10 months service). 2 months completely free!": [
+    "«Əgər 1 illik abunəni birdəfəlik ödəsəniz, 2 ayı sizə hədiyyə edirik: 150 AZN + 690 AZN = Cəmi 840 AZN»",
+    "«При единовременной оплате за 1 год — 2 месяца в подарок: 150 AZN + 690 AZN = всего 840 AZN»",
+  ],
+  "Annual Bonus Active:": [
+    "İllik Ödəniş Bonusu:",
+    "Бонус при годовой оплате:",
+  ],
+  "Pay 1 year upfront and get 2 months free: 150 AZN + 690 AZN = 840 AZN total.": [
+    "1 illik abunəni birdəfəlik ödəyin, 2 ayı hədiyyə qazanın: 150 AZN + 690 AZN = cəmi 840 AZN.",
+    "Оплатите годовую подписку сразу и получите 2 месяца в подарок: 150 AZN + 690 AZN = всего 840 AZN.",
+  ],
+  "Annual package: 150 AZN installation + 690 AZN for 10 months of service. The other 2 months are free. Total: 840 AZN. Monitoring equipment remains HEAT property during the subscription.": [
+    "İllik paket: 150 AZN quraşdırma + 10 aylıq xidmət üçün 690 AZN. Qalan 2 ay hədiyyədir. Cəmi: 840 AZN. Monitorinq avadanlığı abunəlik müddətində HEAT-in mülkiyyətində qalır.",
+    "Годовой пакет: 150 AZN за установку + 690 AZN за 10 месяцев обслуживания. Ещё 2 месяца — в подарок. Итого: 840 AZN. Оборудование мониторинга остаётся собственностью HEAT на время подписки.",
+  ],
+  "AZN / year": ["AZN / il", "AZN / год"],
   "AZN / month": ["AZN / ay", "AZN / месяц"],
   "Installation, system activation and the first month of service are included.": [
     "Quraşdırılma, sistemin aktivləşdirilməsi və ilk aylıq xidmət daxildir.",
@@ -37,10 +85,6 @@ const copy: Record<string, Pair> = {
   "Continuous monitoring, analytics, reports and remote support.": [
     "Davamlı monitorinq, analitika, hesabatlar və uzaqdan dəstək.",
     "Непрерывный мониторинг, аналитика, отчёты и удалённая поддержка.",
-  ],
-  "You do not pay 220 + 120 AZN in the first month. Your first-month total is 220 AZN; every following month is 120 AZN. Pricing covers one facility. Monitoring equipment remains HEAT property during the subscription.": [
-    "İlk ay 220 + 120 AZN ödəmirsiniz. İlk ay üçün ümumi ödəniş 220 AZN-dir; sonrakı hər ay 120 AZN-dir. Qiymət bir obyekt üçün nəzərdə tutulub. Abunəlik müddətində monitorinq avadanlığı HEAT-in mülkiyyətində qalır.",
-    "В первый месяц вы не платите 220 + 120 AZN. Общая оплата за первый месяц — 220 AZN; каждый следующий месяц — 120 AZN. Цена указана для одного объекта. Во время подписки оборудование остаётся собственностью HEAT.",
   ],
   "EVERYTHING INCLUDED": ["PAKETƏ DAXİLDİR", "ВСЁ ВКЛЮЧЕНО"],
   "HEAT energy monitoring service": ["HEAT enerji monitorinqi xidməti", "Сервис энергомониторинга HEAT"],

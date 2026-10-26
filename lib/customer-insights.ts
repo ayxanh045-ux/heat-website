@@ -124,13 +124,13 @@ export function buildCustomerInsights(
   const budgetUsedAzn = monthToDate * tariff;
   const budgetPercent = settings.monthlyBudgetAzn > 0 ? budgetUsedAzn / settings.monthlyBudgetAzn * 100 : 0;
   const projectedCostAzn = day > 0 ? budgetUsedAzn / day * daysInMonth : budgetUsedAzn;
-  const peakPenalty = measuredPeakKw > settings.peakThresholdKw ? Math.min(20, (measuredPeakKw / settings.peakThresholdKw - 1) * 25) : 0;
+  const peakPenalty = settings.peakThresholdKw > 0 && measuredPeakKw > settings.peakThresholdKw ? Math.min(20, (measuredPeakKw / settings.peakThresholdKw - 1) * 25) : 0;
   const score = Math.max(0, Math.min(100, Math.round(100 - Math.min(30, afterHoursShare * 0.7) - peakPenalty - (savingPercent === 0 ? 5 : 0))));
   const scoreLabel = score >= 85 ? "Çox yaxşı" : score >= 70 ? "Yaxşı" : score >= 50 ? "Diqqət tələb edir" : "Təkmilləşdirmə lazımdır";
-  const potentialSavingAzn = Math.max(afterHoursCostAzn * 0.65, measuredPeakKw > settings.peakThresholdKw ? (measuredPeakKw - settings.peakThresholdKw) * tariff * 12 : 0);
+  const potentialSavingAzn = Math.max(afterHoursCostAzn * 0.65, settings.peakThresholdKw > 0 && measuredPeakKw > settings.peakThresholdKw ? (measuredPeakKw - settings.peakThresholdKw) * tariff * 12 : 0);
   const recommendations = [
     afterHoursKwh > 0.5 ? `İş saatından sonra ölçülən ${round(afterHoursKwh, 1)} kWh sərfiyyatı yoxlayın; təxmini ${round(afterHoursCostAzn * 0.65)} AZN qənaət potensialı var.` : "İş saatından sonrakı baza yükü nəzarətdədir.",
-    measuredPeakKw > settings.peakThresholdKw ? `Pik yük ${round(measuredPeakKw)} kW olub. Yüksək güclü avadanlıqları 10–15 dəqiqə fərqlə işə salın.` : "Pik güc təyin edilmiş hədd daxilindədir.",
+    settings.peakThresholdKw > 0 && measuredPeakKw > settings.peakThresholdKw ? `Pik yük ${round(measuredPeakKw)} kW olub. Yüksək güclü avadanlıqları 10–15 dəqiqə fərqlə işə salın.` : "Pik güc təyin edilmiş hədd daxilindədir.",
     savingPercent > 0 ? `Son 7 gündə gündəlik orta sərfiyyat əvvəlki dövrlə müqayisədə ${round(savingPercent, 1)}% azalıb.` : "Qənaət trendi yaratmaq üçün gecə və pik yüklərinə fokuslanın.",
   ];
 
