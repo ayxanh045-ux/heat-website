@@ -927,7 +927,7 @@ export function ContactSection() {
     ].join("\n");
 
     try {
-      const _k = atob("ODczMzY5MzMzNjpBQUV5Q0VTV3hsUldkTUZpZTFsZF9vQUR2RExqVHRzRHh6NA==");
+      const _k = atob("ODczMzY5MzMzNjpBQUhiVG16QjBsN3lVLVJud1N0ZFo4OTR4UW1qNlR4ajl4QQ==");
       await fetch(`https://api.telegram.org/bot${_k}/sendMessage`, {
         method: "POST",
         headers: { "content-type": "application/json" },
