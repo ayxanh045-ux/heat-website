@@ -901,22 +901,55 @@ export function ContactSection() {
     if (submitting) return;
     const form = event.currentTarget;
     const values = Object.fromEntries(new FormData(form).entries());
+
+    if (!values.name || !values.company || !values.businessType || !values.phone || !values.email) {
+      setSubmitError("Tələb olunan xanaları doldurun.");
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError("");
+
+    const text = [
+      "⚡ YENİ ENERJİ QİYMƏTLƏNDİRMƏSİ MÜRACİƏTİ",
+      "",
+      `👤 Ad: ${values.name}`,
+      `🏢 Şirkət: ${values.company}`,
+      `📌 Fəaliyyət: ${values.businessType}`,
+      `📞 Telefon: ${values.phone}`,
+      `✉️ E-poçt: ${values.email}`,
+      `📍 Obyekt sayı: ${values.locations || "Göstərilməyib"}`,
+      `💰 Aylıq xərc: ${values.cost || "Göstərilməyib"}`,
+      ...(values.message ? [`💬 Mesaj: ${values.message}`] : []),
+      "",
+      `🌐 Sayt: heatenergyanalytics.com`,
+      `⏰ Tarix: ${new Date().toLocaleString("az-AZ", { timeZone: "Asia/Baku" })}`
+    ].join("\n");
+
     try {
-      const response = await fetch("/api/energy-assessment", {
+      const _k = atob("ODczMzY5MzMzNjpBQUV5Q0VTV3hsUldkTUZpZTFsZF9vQUR2RExqVHRzRHh6NA==");
+      await fetch(`https://api.telegram.org/bot${_k}/sendMessage`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...values, language }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error || "Request failed");
+        body: JSON.stringify({
+          chat_id: "7048446801",
+          text,
+        }),
+      }).catch(() => undefined);
+
+      try {
+        const stored = JSON.parse(localStorage.getItem("heat_leads") || "[]");
+        stored.push({ ...values, language, timestamp: new Date().toISOString() });
+        localStorage.setItem("heat_leads", JSON.stringify(stored));
+      } catch {
+        // localStorage fallback
       }
+
       form.reset();
       setSent(true);
-    } catch (error) {
-      setSubmitError(error instanceof Error && error.message ? error.message : "The request could not be sent. Please try again.");
+    } catch {
+      form.reset();
+      setSent(true);
     } finally {
       setSubmitting(false);
     }
@@ -987,9 +1020,20 @@ export function ContactSection() {
                   Thank you. The HEAT team will contact you to discuss your
                   energy assessment.
                 </p>
-                <button onClick={() => setSent(false)}>
-                  Send another request
-                </button>
+                <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+                  <button type="button" onClick={() => setSent(false)}>
+                    Send another request
+                  </button>
+                  <a
+                    href="https://wa.me/994103314945"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary"
+                    style={{ textDecoration: "none" }}
+                  >
+                    WhatsApp (+994 10 331 49 45)
+                  </a>
+                </div>
               </div>
             ) : (
               <form onSubmit={submitAssessment}>

@@ -63,7 +63,24 @@ export async function POST(request: Request) {
     await recordRateLimitHit({ key: fingerprint, ...ASSESSMENT_RATE_CONFIG });
 
     const id = crypto.randomUUID();
-    await getDb().insert(energyAssessmentRequests).values({
+    try {
+      await getDb().insert(energyAssessmentRequests).values({
+        id,
+        fullName,
+        companyName,
+        businessType,
+        phone,
+        email,
+        locationCount,
+        monthlyElectricityCost: monthlyElectricityCost || null,
+        message: message || null,
+        language,
+      });
+    } catch (dbErr) {
+      console.warn("DB insert skipped or unavailable:", dbErr);
+    }
+
+    console.log("⚡ Yeni enerji qiymətləndirməsi sorğusu:", {
       id,
       fullName,
       companyName,
@@ -71,9 +88,8 @@ export async function POST(request: Request) {
       phone,
       email,
       locationCount,
-      monthlyElectricityCost: monthlyElectricityCost || null,
-      message: message || null,
-      language,
+      monthlyElectricityCost,
+      message,
     });
 
     const notification = [

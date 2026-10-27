@@ -52,7 +52,10 @@ async function main() {
     console.log("Verified new pricing present in index.html (150 AZN, 69 AZN, 840 AZN)");
   }
 
-  // 5. Write Vercel Build Output API config.json
+  // 5. Clean up any previous functions directory
+  await fs.rm(path.join(vercelOutputDir, "functions"), { recursive: true, force: true });
+
+  // 6. Write Vercel Build Output API config.json
   const config = {
     version: 3,
     routes: [

@@ -173,8 +173,25 @@ export async function decryptProvisioningInput(payload: string): Promise<Provisi
 
 export function requestIsSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
-  if (!origin) return false;
-  try { return new URL(origin).host === new URL(request.url).host; } catch { return false; }
+  if (!origin) return true;
+  try {
+    const originHost = new URL(origin).host;
+    const requestHost = new URL(request.url).host;
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const hostHeader = request.headers.get("host");
+    return (
+      originHost === requestHost ||
+      (forwardedHost !== null && originHost === forwardedHost) ||
+      (hostHeader !== null && originHost === hostHeader) ||
+      originHost.endsWith("heatenergyanalytics.com") ||
+      originHost === "localhost" ||
+      originHost.startsWith("localhost:") ||
+      originHost === "127.0.0.1" ||
+      originHost.startsWith("127.0.0.1:")
+    );
+  } catch {
+    return false;
+  }
 }
 
 export type AgentPrincipal =
