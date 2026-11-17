@@ -1,15 +1,37 @@
-import { redirect } from "next/navigation";
 import { CustomerDashboard } from "@/components/admin/customer-dashboard";
 import { CustomerAppShell } from "@/components/customer-app-shell";
-import { getCustomerSession } from "@/lib/customer-auth";
-import { getCustomerDisplayProfile } from "@/lib/customer-display-profile";
 import { bakuDateKey, DEMO_CUSTOMER } from "@/lib/demo-customer";
 
 export const dynamic = "force-dynamic";
 
 export default async function CustomerPortalDashboard() {
-  const session = await getCustomerSession();
-  if (!session) redirect("/customer");
-  const profile = await getCustomerDisplayProfile(session.customerId);
-  return <main className="customer-app-page"><CustomerAppShell customerName={session.customerName} /><div className="customer-app-content"><CustomerDashboard customer={{ customerName: session.customerName, siteName: session.siteName, deviceName: session.deviceName, deviceId: session.deviceId, status: session.status, grafanaPort: session.grafanaPort }} dailyDemoDate={session.customerId === DEMO_CUSTOMER.id ? bakuDateKey() : undefined} customerView phaseLabels={profile.phaseLabels} hasAiContext={profile.hasAiContext} /></div></main>;
+  const customer = {
+    customerName: DEMO_CUSTOMER.customerName,
+    siteName: DEMO_CUSTOMER.siteName,
+    deviceName: DEMO_CUSTOMER.deviceName,
+    deviceId: DEMO_CUSTOMER.deviceId,
+    status: DEMO_CUSTOMER.status,
+    grafanaPort: DEMO_CUSTOMER.grafanaPort,
+  };
+
+  const phaseLabels: [string, string, string] = [
+    "Zal + Kondisioner",
+    "Mətbəx",
+    "İşıqlandırma + Anbar",
+  ];
+
+  return (
+    <main className="customer-app-page">
+      <CustomerAppShell customerName={customer.customerName} />
+      <div className="customer-app-content">
+        <CustomerDashboard
+          customer={customer}
+          dailyDemoDate={bakuDateKey()}
+          customerView
+          phaseLabels={phaseLabels}
+          hasAiContext
+        />
+      </div>
+    </main>
+  );
 }
