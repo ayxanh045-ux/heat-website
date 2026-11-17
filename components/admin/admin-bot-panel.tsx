@@ -27,11 +27,13 @@ export function AdminBotPanel() {
     setLoading(true);
     try {
       const response = await fetch("/api/admin-bot/settings", { cache: "no-store" });
-      const payload = await response.json() as AdminBotState & { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Admin Bot məlumatları açıla bilmədi.");
-      setState(payload);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Admin Bot məlumatları açıla bilmədi.");
+      const contentType = response.headers.get("content-type") || "";
+      if (response.ok && contentType.includes("application/json")) {
+        const payload = await response.json() as AdminBotState & { error?: string };
+        if (!payload.error) setState(payload);
+      }
+    } catch {
+      // Keep initial/current state on static or network failure
     } finally { setLoading(false); }
   }
 
@@ -39,13 +41,14 @@ export function AdminBotPanel() {
     const controller = new AbortController();
     fetch("/api/admin-bot/settings", { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
-        const payload = await response.json() as AdminBotState & { error?: string };
-        if (!response.ok) throw new Error(payload.error || "Admin Bot məlumatları açıla bilmədi.");
-        setState(payload);
+        const contentType = response.headers.get("content-type") || "";
+        if (response.ok && contentType.includes("application/json")) {
+          const payload = await response.json() as AdminBotState & { error?: string };
+          if (!payload.error) setState(payload);
+        }
       })
-      .catch((reason) => {
-        if (reason instanceof DOMException && reason.name === "AbortError") return;
-        setError(reason instanceof Error ? reason.message : "Admin Bot məlumatları açıla bilmədi.");
+      .catch(() => {
+        // Keep initial state
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);

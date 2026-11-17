@@ -122,9 +122,15 @@ export function CustomerDashboard({ customer, dailyDemoDate, customerView = fals
     if (!customerView) return;
     const controller = new AbortController();
     fetch(`/api/customer-energy?date=${encodeURIComponent(selectedDate)}`, { cache: "no-store", signal: controller.signal })
-      .then(response => response.ok ? response.json() : Promise.reject(new Error("energy unavailable")))
+      .then(async (response) => {
+        const contentType = response.headers.get("content-type") || "";
+        if (response.ok && contentType.includes("application/json")) {
+          return await response.json();
+        }
+        return null;
+      })
       .then(data => setRealEnergy(data))
-      .catch(error => { if (error.name !== "AbortError") setRealEnergy(null); })
+      .catch(error => { if (error?.name !== "AbortError") setRealEnergy(null); })
       .finally(() => { if (!controller.signal.aborted) setEnergyLoading(false); });
     return () => controller.abort();
   }, [customerView, selectedDate]);

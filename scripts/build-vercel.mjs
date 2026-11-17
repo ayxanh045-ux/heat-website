@@ -106,10 +106,63 @@ async function main() {
     console.log("Verified new pricing present in index.html (150 AZN, 69 AZN, 840 AZN)");
   }
 
-  // 5. Clean up any previous functions directory
+  // 5. Generate mock JSON for API endpoints on static hosting
+  const apiDir = path.join(staticDir, "api");
+  await fs.mkdir(apiDir, { recursive: true });
+
+  const mockApiFiles = [
+    {
+      name: "customer-energy",
+      data: {
+        selected: { energyKwh: 84.7, costAzn: 9.32 },
+        monthToDate: { energyKwh: 1420.5, costAzn: 156.26 },
+        source: "demo",
+      },
+    },
+    {
+      name: "admin-bot/settings",
+      data: {
+        configured: true,
+        enabled: true,
+        chatId: "7048446801",
+        botUsername: "heatadminbot",
+      },
+    },
+    {
+      name: "customer-auth/login",
+      data: { ok: true, customerId: "demo" },
+    },
+    {
+      name: "customer-auth/logout",
+      data: { ok: true },
+    },
+  ];
+
+    for (const item of mockApiFiles) {
+    const jsonStr = JSON.stringify(item.data, null, 2);
+    const targetPath = path.join(apiDir, `${item.name}.json`);
+    await fs.mkdir(path.dirname(targetPath), { recursive: true });
+    await fs.writeFile(targetPath, jsonStr, "utf-8");
+    await fs.writeFile(path.join(apiDir, item.name), jsonStr, "utf-8");
+  }
+
+  try {
+    const demoInsightsJson = await renderRoute(worker, "/api/demo-insights", { accept: "application/json" });
+    if (demoInsightsJson && demoInsightsJson.startsWith("{")) {
+      await fs.writeFile(path.join(apiDir, "demo-insights.json"), demoInsightsJson, "utf-8");
+      await fs.writeFile(path.join(apiDir, "demo-insights"), demoInsightsJson, "utf-8");
+      await fs.writeFile(path.join(apiDir, "customer-insights.json"), demoInsightsJson, "utf-8");
+      await fs.writeFile(path.join(apiDir, "customer-insights"), demoInsightsJson, "utf-8");
+      console.log("Pre-generated demo-insights.json and customer-insights.json");
+    }
+  } catch (err) {
+    console.warn("Could not pre-render demo-insights:", err.message);
+  }
+
+  // 6. Clean up any previous functions directory
   await fs.rm(path.join(vercelOutputDir, "functions"), { recursive: true, force: true });
 
-  // 6. Write Vercel Build Output API config.json
+  // 7. Write Vercel Build Output API config.json
   const config = {
     version: 3,
     routes: [
@@ -118,6 +171,13 @@ async function main() {
       { src: "/customer/?", dest: "/customer/index.html" },
       { src: "/admin/requests/?", dest: "/admin/requests/index.html" },
       { src: "/admin/?", dest: "/admin/index.html" },
+      { src: "/api/customer-insights.*", dest: "/api/customer-insights.json", headers: { "content-type": "application/json" } },
+      { src: "/api/demo-insights.*", dest: "/api/demo-insights.json", headers: { "content-type": "application/json" } },
+      { src: "/api/customer-energy.*", dest: "/api/customer-energy.json", headers: { "content-type": "application/json" } },
+      { src: "/api/admin-bot/settings.*", dest: "/api/admin-bot/settings.json", headers: { "content-type": "application/json" } },
+      { src: "/api/customer-auth/login.*", dest: "/api/customer-auth/login.json", headers: { "content-type": "application/json" } },
+      { src: "/api/customer-auth/logout.*", dest: "/api/customer-auth/logout.json", headers: { "content-type": "application/json" } },
+      { src: "/api/(.*)", status: 404, headers: { "content-type": "application/json" } },
       { src: "/(.*)", dest: "/index.html" },
     ],
   };
